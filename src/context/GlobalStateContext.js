@@ -1,6 +1,5 @@
-// src/context/GlobalStateContext.js
 import React, { createContext, useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, updateDoc, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, doc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const GlobalStateContext = createContext();
@@ -72,8 +71,22 @@ const GlobalStateProvider = ({ children }) => {
     }
   };
 
+  const deleteTransaction = async (id) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await deleteDoc(doc(db, 'transactions', id));
+      setTransactions(prev => prev.filter(transaction => transaction.id !== id));
+    } catch (error) {
+      setError("Error deleting transaction");
+      console.error("Error deleting document: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <GlobalStateContext.Provider value={{ transactions, students, expectedIncome, addTransaction, updateExpectedIncome, setTransactions, setStudents, error, loading }}>
+    <GlobalStateContext.Provider value={{ transactions, students, expectedIncome, addTransaction, updateExpectedIncome, deleteTransaction, setTransactions, setStudents, error, loading }}>
       {children}
     </GlobalStateContext.Provider>
   );

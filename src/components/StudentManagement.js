@@ -145,7 +145,7 @@ const StudentManagement = () => {
 
         {/* Subjects */}
         <div>
-          <label class="subjects">Subjects</label>
+          <label className="subjects">Subjects</label>
           <div className="subjects-container">
             {/* English Checkbox */}
             <div className="subject-item">
@@ -187,12 +187,14 @@ const StudentManagement = () => {
         </div>
 
         {/* Submit Buttons */}
-        <button type="submit">{editingStudentId ? 'Update Student' : 'Add Student'}</button>
-        {editingStudentId && (
-          <button type="button" onClick={() => setEditingStudentId(null)}>
-            Cancel
-          </button>
-        )}
+        <div className="button-group">
+          <button type="submit">{editingStudentId ? 'Update Student' : 'Add Student'}</button>
+          {editingStudentId && (
+            <button type="button" onClick={() => setEditingStudentId(null)}>
+              Cancel
+            </button>
+          )}
+        </div>
       </form>
 
       {/* Error and Loading States */}
@@ -204,10 +206,12 @@ const StudentManagement = () => {
         <h3>Student List</h3>
         <ul>
           {students.map((student) => (
-            <li key={student.id}>
+            <li key={student.id} className="transaction-item">
               <Link to={`/student/${student.id}`}>{student.name}</Link>
-              <button onClick={() => handleEditStudent(student)}>Edit</button>
-              <button onClick={() => handleRemoveStudent(student.id)}>Remove</button>
+              <div className="button-group">
+                <button onClick={() => handleEditStudent(student)}>Edit</button>
+                <button onClick={() => handleRemoveStudent(student.id)}>Remove</button>
+              </div>
             </li>
           ))}
         </ul>

@@ -85,6 +85,8 @@ button:hover {
 .student-list .button-group button, .payment-list .button-group button {
   padding: 5px 10px;
   border: none;
+  background-color: #dc3545;
+  color: white;
   border-radius: 5px;
   cursor: pointer;
   margin-top: 5px;
@@ -98,12 +100,16 @@ button:hover {
   background-color: #0056b3;
 }
 
+.student-list .button-group button:hover, .payment-list .button-group button:hover {
+  background-color: #c82333;
+}
+
 .student-list .button-group button:last-child, .payment-list .button-group button:last-child {
-  background-color: #dc3545;
+  background-color: #6c757d;
 }
 
 .student-list .button-group button:last-child:hover, .payment-list .button-group button:last-child:hover {
-  background-color: #c82333;
+  background-color: #5a6268;
 }
 
 /* Student list specific styles */

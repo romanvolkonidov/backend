@@ -1,0 +1,108 @@
+.monthly-report {
+  padding: 20px;
+}
+
+.monthly-report h2 {
+  font-size: 2em;
+  margin-bottom: 20px;
+}
+
+.monthly-report div {
+  margin-bottom: 20px;
+}
+
+input[type="month"], select {
+  width: 100%;
+  max-width: 300px;
+  padding: 10px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+h3 {
+  font-size: 1.5em;
+  color: #28a745;
+}
+
+.transaction-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.transaction-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+  width: 100%;
+}
+
+.transaction-item span {
+  flex: 1;
+  text-align: center;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.button-group button {
+  padding: 5px 10px;
+  border: none;
+  background-color: #dc3545;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+.button-group button:first-child {
+  background-color: #007bff;
+}
+
+.button-group button:first-child:hover {
+  background-color: #0056b3;
+}
+
+.button-group button:hover {
+  background-color: #c82333;
+}
+
+@media (max-width: 600px) {
+  .transaction-item {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .button-group {
+    flex-direction: row;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  
+  .transaction-item span {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+}
+
+.transaction-item input {
+  margin-right: 10px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.transaction-item input:focus {
+  border-color: #007bff;
+}
+
+.transaction-item .button-group button:last-child {
+  background-color: #6c757d;
+}
+
+.transaction-item .button-group button:last-child:hover {
+  background-color: #5a6268;
+}

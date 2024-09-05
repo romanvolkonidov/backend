@@ -1,0 +1,46 @@
+/* src/styles/Navbar.css */
+
+.navbar {
+  background-color: #4a90e2; /* Main color */
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.navbar ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 20px; /* Space between links */
+}
+
+.navbar li {
+  margin: 0;
+}
+
+.navbar a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  padding: 5px 10px; /* Add some padding around links */
+  border-radius: 4px; /* Rounded corners for links */
+}
+
+.navbar a:hover,
+.navbar a:focus {
+  text-decoration: underline;
+  background-color: rgba(255, 255, 255, 0.2); /* Subtle background on hover/focus */
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .navbar ul {
+    flex-direction: column;
+    gap: 10px; /* Adjust space between links on smaller screens */
+  }
+}

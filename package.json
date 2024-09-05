@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node server.js",
-    "build": "react-scripts build",
+    "build": "your-build-command",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "heroku-postbuild": "npm run build",
@@ -27,7 +27,7 @@
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
   },
   "engines": {
-    "node": "16.x"
+    "node": "14.x"
   },
   "browserslist": {
     "production": [

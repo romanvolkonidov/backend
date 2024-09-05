@@ -1,1 +1,2 @@
-web:  npm start
+web:     npm install -g serve
+         serve -s build

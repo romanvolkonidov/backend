@@ -1,25 +1,23 @@
 import React, { useState, useMemo, useContext, useEffect } from 'react';
 import { GlobalStateContext } from '../context/GlobalStateContext';
 import '../styles/MonthlyReport.css';
-import { db } from '../firebase'; // Adjust the import path as necessary
+import { db } from '../firebase';
 import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
 
 const MonthlyReport = () => {
-  const { transactions, setTransactions, students, deleteTransaction } = useContext(GlobalStateContext);
+  const { transactions, setTransactions, students } = useContext(GlobalStateContext);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
   const [filterType, setFilterType] = useState('all');
   const [filterCategory, setFilterCategory] = useState('');
   const [loading, setLoading] = useState(true);
-  const [firestoreData, setFirestoreData] = useState([]);
   const [editingTransactionId, setEditingTransactionId] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, 'yourCollection')); // Replace 'yourCollection' with your actual collection name
+        const querySnapshot = await getDocs(collection(db, 'transactions'));
         const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setFirestoreData(items);
-        setTransactions(items); // Update the global state with fetched data
+        setTransactions(items);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching Firestore data: ", error);
@@ -35,7 +33,7 @@ const MonthlyReport = () => {
       const matchesMonth = t.date && t.date.startsWith(selectedMonth);
       const matchesType = filterType === 'all' || t.type === filterType;
       const matchesCategory = filterCategory ? t.category === filterCategory : true;
-      const isNotLesson = t.type !== 'lesson'; // Exclude lessons
+      const isNotLesson = t.type !== 'lesson';
       return matchesMonth && matchesType && matchesCategory && isNotLesson;
     });
   }, [transactions, selectedMonth, filterType, filterCategory]);
@@ -54,7 +52,8 @@ const MonthlyReport = () => {
 
   const handleRemoveTransaction = async (id) => {
     try {
-      await deleteTransaction(id);
+      await deleteDoc(doc(db, 'transactions', id));
+      setTransactions(transactions.filter(transaction => transaction.id !== id));
     } catch (error) {
       console.error("Error removing transaction: ", error);
     }
@@ -65,9 +64,8 @@ const MonthlyReport = () => {
       const updatedTransactions = transactions.map(transaction => 
         transaction.id === updatedTransaction.id ? updatedTransaction : transaction
       );
-      localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
       setTransactions(updatedTransactions);
-      setEditingTransactionId(null); // Exit editing mode
+      setEditingTransactionId(null);
     } catch (error) {
       console.error("Error editing transaction: ", error);
     }
@@ -143,7 +141,7 @@ const MonthlyReport = () => {
                   />
                   <input
                     type="date"
-                    defaultValue={transaction.date.split('T')[0]} // Adjusted to match date format
+                    defaultValue={transaction.date.split('T')[0]}
                     onBlur={(e) => handleEditTransaction({
                       ...transaction,
                       date: e.target.value
@@ -199,7 +197,7 @@ const MonthlyReport = () => {
                   />
                   <input
                     type="date"
-                    defaultValue={transaction.date.split('T')[0]} // Adjusted to match date format
+                    defaultValue={transaction.date.split('T')[0]}
                     onBlur={(e) => handleEditTransaction({
                       ...transaction,
                       date: e.target.value

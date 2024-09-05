@@ -1,10 +1,10 @@
 {
-  "name": "newappbudget",
+  "name": "family-budget-tracker",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "start": "node server.js",
-    "build": "your-build-command",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "heroku-postbuild": "npm run build",
@@ -27,7 +27,7 @@
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
   },
   "engines": {
-    "node": "14.x"
+    "node": "16.x"
   },
   "browserslist": {
     "production": [

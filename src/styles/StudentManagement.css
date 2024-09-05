@@ -77,10 +77,33 @@ button:hover {
   background-color: #f5f5f5;
 }
 
-.student-list button, .payment-list button {
+.student-list .button-group, .payment-list .button-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.student-list .button-group button, .payment-list .button-group button {
   padding: 5px 10px;
-  margin-left: 10px;
-  font-size: 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+.student-list .button-group button:first-child, .payment-list .button-group button:first-child {
+  background-color: #007bff;
+}
+
+.student-list .button-group button:first-child:hover, .payment-list .button-group button:first-child:hover {
+  background-color: #0056b3;
+}
+
+.student-list .button-group button:last-child, .payment-list .button-group button:last-child {
+  background-color: #dc3545;
+}
+
+.student-list .button-group button:last-child:hover, .payment-list .button-group button:last-child:hover {
+  background-color: #c82333;
 }
 
 /* Student list specific styles */
@@ -119,9 +142,15 @@ button:hover {
     align-items: flex-start;
   }
 
-  .student-list button, .payment-list button {
+  .student-list .button-group, .payment-list .button-group {
+    flex-direction: row;
+    justify-content: center;
     margin-top: 10px;
-    margin-left: 0;
+  }
+
+  .student-list li span, .payment-list li span {
+    text-align: center;
+    margin-bottom: 10px;
   }
 }
 
@@ -138,7 +167,6 @@ button:hover {
   justify-content: flex-start;
   gap: 10px; /* Adds spacing between checkbox and label */
   width: 20px;
-  
 }
 
 .subject-item input[type="checkbox"] {
@@ -147,5 +175,5 @@ button:hover {
 }
 
 .subjects {
-font-size: 18px;
+  font-size: 18px;
 }

@@ -2,10 +2,10 @@ import React, { useState, useMemo, useContext, useEffect } from 'react';
 import { GlobalStateContext } from '../context/GlobalStateContext';
 import '../styles/MonthlyReport.css';
 import { db } from '../firebase'; // Adjust the import path as necessary
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
 
 const MonthlyReport = () => {
-  const { transactions, setTransactions, students } = useContext(GlobalStateContext);
+  const { transactions, setTransactions, students, deleteTransaction } = useContext(GlobalStateContext);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
   const [filterType, setFilterType] = useState('all');
   const [filterCategory, setFilterCategory] = useState('');
@@ -17,8 +17,9 @@ const MonthlyReport = () => {
     const fetchData = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, 'yourCollection')); // Replace 'yourCollection' with your actual collection name
-        const items = querySnapshot.docs.map(doc => doc.data());
+        const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setFirestoreData(items);
+        setTransactions(items); // Update the global state with fetched data
         setLoading(false);
       } catch (error) {
         console.error("Error fetching Firestore data: ", error);
@@ -27,7 +28,7 @@ const MonthlyReport = () => {
     };
 
     fetchData();
-  }, []);
+  }, [setTransactions]);
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(t => {
@@ -51,10 +52,12 @@ const MonthlyReport = () => {
       .reduce((sum, t) => sum + (typeof t.amount === 'number' ? t.amount : 0), 0);
   }, [filteredTransactions]);
 
-  const handleRemoveTransaction = (id) => {
-    const updatedTransactions = transactions.filter(transaction => transaction.id !== id);
-    localStorage.setItem('transactions', JSON.stringify(updatedTransactions));
-    setTransactions(updatedTransactions);
+  const handleRemoveTransaction = async (id) => {
+    try {
+      await deleteTransaction(id);
+    } catch (error) {
+      console.error("Error removing transaction: ", error);
+    }
   };
 
   const handleEditTransaction = (updatedTransaction) => {

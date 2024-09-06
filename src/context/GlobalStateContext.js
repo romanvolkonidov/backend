@@ -8,33 +8,51 @@ const GlobalStateProvider = ({ children }) => {
   const [transactions, setTransactions] = useState([]);
   const [students, setStudents] = useState([]);
   const [expectedIncome, setExpectedIncome] = useState(1000); // Default expected income
+  const [exchangeRates, setExchangeRates] = useState({});
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Fetch transactions
+      const transactionSnapshot = await getDocs(collection(db, 'transactions'));
+      const fetchedTransactions = transactionSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setTransactions(fetchedTransactions);
+
+      // Fetch students
+      const studentSnapshot = await getDocs(collection(db, 'students'));
+      const fetchedStudents = studentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setStudents(fetchedStudents);
+
+      // Fetch expected income
+      const incomeDocRef = doc(db, 'settings', 'expectedIncome');
+      const incomeDocSnap = await getDoc(incomeDocRef);
+      if (incomeDocSnap.exists()) {
+        const incomeValue = incomeDocSnap.data().value;
+        setExpectedIncome(incomeValue);
+      }
+
+      // Fetch exchange rates
+      const response = await fetch('https://v6.exchangerate-api.com/v6/3bbdd0fd4d206d7fbbf81174/latest/USD');
+      const data = await response.json();
+      const relevantRates = {
+        USD: data.conversion_rates.USD,
+        EUR: data.conversion_rates.EUR,
+        KES: data.conversion_rates.KES,
+        RUB: data.conversion_rates.RUB,
+      };
+      setExchangeRates(relevantRates);
+    } catch (error) {
+      setError("Error fetching data");
+      console.error("Error fetching data: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        // Fetch transactions
-        const transactionSnapshot = await getDocs(collection(db, 'transactions'));
-        const fetchedTransactions = transactionSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setTransactions(fetchedTransactions);
-
-        // Fetch expected income
-        const incomeDocRef = doc(db, 'settings', 'expectedIncome');
-        const incomeDocSnap = await getDoc(incomeDocRef);
-        if (incomeDocSnap.exists()) {
-          setExpectedIncome(incomeDocSnap.data().value);
-        }
-      } catch (error) {
-        setError("Error fetching data");
-        console.error("Error fetching Firestore data: ", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
 
@@ -51,6 +69,49 @@ const GlobalStateProvider = ({ children }) => {
     } catch (error) {
       setError("Error adding transaction");
       console.error("Error adding document: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addStudent = async (student) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const docRef = await addDoc(collection(db, 'students'), student);
+      setStudents(prev => [...prev, { id: docRef.id, ...student }]);
+    } catch (error) {
+      setError("Error adding student");
+      console.error("Error adding document: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateStudent = async (id, updatedStudent) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const studentDoc = doc(db, 'students', id);
+      await updateDoc(studentDoc, updatedStudent);
+      setStudents(prev => prev.map(student => (student.id === id ? { id, ...updatedStudent } : student)));
+    } catch (error) {
+      setError("Error updating student");
+      console.error("Error updating document: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteStudent = async (id) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await deleteDoc(doc(db, 'students', id));
+      setStudents(prev => prev.filter(student => student.id !== id));
+    } catch (error) {
+      setError("Error deleting student");
+      console.error("Error deleting document: ", error);
     } finally {
       setLoading(false);
     }
@@ -86,7 +147,22 @@ const GlobalStateProvider = ({ children }) => {
   };
 
   return (
-    <GlobalStateContext.Provider value={{ transactions, students, expectedIncome, addTransaction, updateExpectedIncome, deleteTransaction, setTransactions, setStudents, error, loading }}>
+    <GlobalStateContext.Provider value={{
+      transactions,
+      students,
+      expectedIncome,
+      addTransaction,
+      addStudent,
+      updateStudent,
+      deleteStudent,
+      updateExpectedIncome,
+      deleteTransaction,
+      setTransactions,
+      setStudents,
+      exchangeRates,
+      error,
+      loading
+    }}>
       {children}
     </GlobalStateContext.Provider>
   );

@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useContext, useEffect } from 'react';
 import { GlobalStateContext } from '../context/GlobalStateContext';
+import { db } from '../firebase'; // Import your Firebase configuration
+import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore'; // Import Firestore functions
 import '../styles/MonthlyReport.css';
 
 const currencies = ['USD', 'KES', 'RUB'];
@@ -53,8 +55,10 @@ const MonthlyReport = () => {
     }
   };
 
-  const handleEditTransaction = (updatedTransaction) => {
+  const handleEditTransaction = async (updatedTransaction) => {
     try {
+      const transactionDoc = doc(db, 'transactions', updatedTransaction.id);
+      await updateDoc(transactionDoc, updatedTransaction);
       const updatedTransactions = transactions.map(transaction => 
         transaction.id === updatedTransaction.id ? updatedTransaction : transaction
       );

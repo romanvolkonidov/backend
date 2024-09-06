@@ -62,7 +62,7 @@ const GlobalStateProvider = ({ children }) => {
     try {
       const docRef = doc(db, 'settings', 'expectedIncome');
       await updateDoc(docRef, { value: income });
-      setExpectedIncome(income);
+      setExpectedIncome(income); // Update the state immediately
     } catch (error) {
       setError("Error updating expected income");
       console.error("Error updating document: ", error);

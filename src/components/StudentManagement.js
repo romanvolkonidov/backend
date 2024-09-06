@@ -1,18 +1,23 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { GlobalStateContext } from '../context/GlobalStateContext'; // Adjust the path as necessary
 import '../styles/StudentManagement.css';
 import { db } from '../firebase'; // Adjust the import path as necessary
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
+const currencies = ['USD', 'RUB', 'EUR', 'KES', 'respective'];
+
 const StudentManagement = () => {
-  const { students, setStudents, transactions, setTransactions } = useContext(GlobalStateContext);
+  const { students = [], setStudents, transactions = [], setTransactions, exchangeRates = {} } = useContext(GlobalStateContext);
   const [studentName, setStudentName] = useState('');
   const [subjects, setSubjects] = useState({ English: false, IT: false });
   const [price, setPrice] = useState('');
+  const [currency, setCurrency] = useState('USD');
   const [editingStudentId, setEditingStudentId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedCurrency, setSelectedCurrency] = useState('respective'); // Default to respective
+  const formRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -21,10 +26,17 @@ const StudentManagement = () => {
       try {
         const querySnapshot = await getDocs(collection(db, 'students'));
         const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setStudents(items);
+        const updatedItems = items.map(item => {
+          if (!item.currency) {
+            item.currency = 'USD';
+            updateDoc(doc(db, 'students', item.id), { currency: 'USD' });
+          }
+          return item;
+        });
+        setStudents(updatedItems);
       } catch (error) {
         setError("Error fetching student data");
-        console.error("Error fetching Firestore data: ", error);
+        console.error("Error fetching Firestore data: ", error.message, error.stack);
       } finally {
         setLoading(false);
       }
@@ -33,30 +45,32 @@ const StudentManagement = () => {
     fetchData();
   }, [setStudents]);
 
+  useEffect(() => {
+    console.log('Exchange Rates:', exchangeRates);
+  }, [exchangeRates]);
+
   const handleAddStudent = async (e) => {
     e.preventDefault();
-    if (studentName && price) {
-      setLoading(true);
-      setError(null);
-      const newStudent = {
-        name: studentName,
-        subjects: subjects,
-        price: parseFloat(price),
-      };
-      try {
-        const docRef = await addDoc(collection(db, 'students'), newStudent);
-        setStudents([...students, { id: docRef.id, ...newStudent }]);
-        setStudentName('');
-        setSubjects({ English: false, IT: false });
-        setPrice('');
-      } catch (error) {
-        setError("Error adding student");
-        console.error("Error adding document: ", error);
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      setError("Please fill out all fields");
+    setLoading(true);
+    setError(null);
+    const newStudent = {
+      name: studentName || '',
+      subjects: subjects || { English: false, IT: false },
+      price: parseFloat(price) || 0,
+      currency: currency || 'USD',
+    };
+    try {
+      const docRef = await addDoc(collection(db, 'students'), newStudent);
+      setStudents([...students, { id: docRef.id, ...newStudent }]);
+      setStudentName('');
+      setSubjects({ English: false, IT: false });
+      setPrice('');
+      setCurrency('USD');
+    } catch (error) {
+      setError("Error adding student");
+      console.error("Error adding document: ", error.message, error.stack);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -73,7 +87,7 @@ const StudentManagement = () => {
       setTransactions(updatedTransactions);
     } catch (error) {
       setError("Error removing student");
-      console.error("Error removing document: ", error);
+      console.error("Error removing document: ", error.message, error.stack);
     } finally {
       setLoading(false);
     }
@@ -91,45 +105,61 @@ const StudentManagement = () => {
     setStudentName(student.name);
     setSubjects(student.subjects);
     setPrice(student.price);
+    setCurrency(student.currency || 'USD');
+    formRef.current.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleUpdateStudent = async (e) => {
     e.preventDefault();
-    if (studentName && price) {
-      setLoading(true);
-      setError(null);
-      try {
-        const studentDoc = doc(db, 'students', editingStudentId);
-        await updateDoc(studentDoc, {
-          name: studentName,
-          subjects: subjects,
-          price: parseFloat(price),
-        });
-        const updatedStudents = students.map(student =>
-          student.id === editingStudentId
-            ? { ...student, name: studentName, subjects: subjects, price: parseFloat(price) }
-            : student
-        );
-        setStudents(updatedStudents);
-        setEditingStudentId(null);
-        setStudentName('');
-        setSubjects({ English: false, IT: false });
-        setPrice('');
-      } catch (error) {
-        setError("Error updating student");
-        console.error("Error updating document: ", error);
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      setError("Please fill out all fields");
+    setLoading(true);
+    setError(null);
+    try {
+      const studentDoc = doc(db, 'students', editingStudentId);
+      await updateDoc(studentDoc, {
+        name: studentName || '',
+        subjects: subjects || { English: false, IT: false },
+        price: parseFloat(price) || 0,
+        currency: currency || 'USD',
+      });
+      const updatedStudents = students.map(student =>
+        student.id === editingStudentId
+          ? { ...student, name: studentName, subjects: subjects, price: parseFloat(price), currency: currency }
+          : student
+      );
+      setStudents(updatedStudents);
+      setEditingStudentId(null);
+      setStudentName('');
+      setSubjects({ English: false, IT: false });
+      setPrice('');
+      setCurrency('USD');
+    } catch (error) {
+      setError("Error updating student");
+      console.error("Error updating document: ", error.message, error.stack);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const convertToSelectedCurrency = (amount, currency) => {
+    if (selectedCurrency === 'respective') {
+      return amount;
+    }
+    if (!exchangeRates[currency]) {
+      console.error(`Missing exchange rate for ${currency}`);
+      return amount; // Return the original amount if the exchange rate is missing
+    }
+    if (!exchangeRates[selectedCurrency]) {
+      console.error(`Missing exchange rate for ${selectedCurrency}`);
+      return amount; // Return the original amount if the exchange rate is missing
+    }
+    const rate = exchangeRates[selectedCurrency] / exchangeRates[currency];
+    return amount * rate;
   };
 
   return (
     <div className="student-management">
       <h2>Student Management</h2>
-      <form onSubmit={editingStudentId ? handleUpdateStudent : handleAddStudent}>
+      <form ref={formRef} onSubmit={editingStudentId ? handleUpdateStudent : handleAddStudent}>
         {/* Student Name */}
         <div>
           <label htmlFor="studentName">Student Name</label>
@@ -139,7 +169,6 @@ const StudentManagement = () => {
             name="studentName"
             value={studentName}
             onChange={(e) => setStudentName(e.target.value)}
-            required
           />
         </div>
 
@@ -175,15 +204,19 @@ const StudentManagement = () => {
 
         {/* Price */}
         <div>
-          <label htmlFor="price">Price (KSH)</label>
+          <label htmlFor="price">Price</label>
           <input
             type="number"
             id="price"
             name="price"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            required
           />
+          <select id="currency" value={currency} onChange={(e) => setCurrency(e.target.value)}>
+            {currencies.filter(curr => curr !== 'respective').map(curr => (
+              <option key={curr} value={curr}>{curr}</option>
+            ))}
+          </select>
         </div>
 
         {/* Submit Buttons */}
@@ -204,10 +237,25 @@ const StudentManagement = () => {
       {/* Student List */}
       <div className="student-list">
         <h3>Student List</h3>
+        <div>
+          <label htmlFor="selectedCurrency">Display Currency:</label>
+          <select
+            id="selectedCurrency"
+            value={selectedCurrency}
+            onChange={(e) => setSelectedCurrency(e.target.value)}
+          >
+            {currencies.map(curr => (
+              <option key={curr} value={curr}>{curr}</option>
+            ))}
+          </select>
+        </div>
         <ul>
-          {students.map((student) => (
+          {students.map((student, index) => (
             <li key={student.id} className="transaction-item">
-              <Link to={`/student/${student.id}`}>{student.name}</Link>
+              <span>{index + 1}. </span>
+              <Link to={`/student/${student.id}`}>
+                {student.name} - {convertToSelectedCurrency(student.price, student.currency).toFixed(2)} {selectedCurrency === 'respective' ? student.currency : selectedCurrency}
+              </Link>
               <div className="button-group">
                 <button onClick={() => handleEditStudent(student)}>Edit</button>
                 <button onClick={() => handleRemoveStudent(student.id)}>Remove</button>

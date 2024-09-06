@@ -2,8 +2,6 @@ import React, { useContext, useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { GlobalStateContext } from '../context/GlobalStateContext';
 import '../styles/Home.css';
-import { db } from '../firebase'; // Adjust the import path as necessary
-import { collection, getDocs } from 'firebase/firestore';
 
 const expenseCategories = ['Rent', 'Utilities', 'Groceries', 'Clothing', 'Transportation', 'Healthcare', 'Personal Care', 'Household Items', 'Friends', 'Entertainment', 'Online Subscriptions', 'Savings'];
 
@@ -13,53 +11,48 @@ const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
-  const [firestoreData, setFirestoreData] = useState([]);
   const [notification, setNotification] = useState('');
   const [error, setError] = useState(null);
+  const [localExpectedIncome, setLocalExpectedIncome] = useState(expectedIncome);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'yourCollection')); // Replace 'yourCollection' with your actual collection name
-        const items = querySnapshot.docs.map(doc => doc.data());
-        setFirestoreData(items);
-      } catch (error) {
-        console.error("Error fetching Firestore data: ", error);
-        setError("Failed to load data. Please try again later.");
-      }
-    };
+    setLocalExpectedIncome(expectedIncome);
+  }, [expectedIncome]);
 
-    fetchData();
-  }, []);
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (transactionType === 'expectedIncome') {
-      updateExpectedIncome(parseFloat(amount));
-      setNotification('Expected Income updated successfully!');
-    } else if ((transactionType === 'expense' && selectedCategory) || transactionType === 'income') {
-      const newTransaction = {
-        type: transactionType,
-        category: transactionType === 'income' ? 'Income' : selectedCategory,
-        amount: parseFloat(amount),
-        description: description,
-      };
-      addTransaction(newTransaction);
-      setNotification('Transaction added successfully!');
-    }
-    // Reset form fields
-    setSelectedCategory('');
-    setAmount('');
-    setDescription('');
-    setTransactionType('expense'); // Reset to default value
+    try {
+      if (transactionType === 'expectedIncome') {
+        await updateExpectedIncome(parseFloat(amount));
+        setLocalExpectedIncome(parseFloat(amount)); // Update local state immediately
+        setNotification('Expected Income updated successfully!');
+      } else if ((transactionType === 'expense' && selectedCategory) || transactionType === 'income') {
+        const newTransaction = {
+          type: transactionType,
+          category: transactionType === 'income' ? 'Income' : selectedCategory,
+          amount: parseFloat(amount),
+          description: description,
+        };
+        await addTransaction(newTransaction);
+        setNotification('Transaction added successfully!');
+      }
+      // Reset form fields
+      setSelectedCategory('');
+      setAmount('');
+      setDescription('');
+      setTransactionType('expense'); // Reset to default value
 
-    // Clear notification after 3 seconds
-    setTimeout(() => setNotification(''), 3000);
+      // Clear notification after 3 seconds
+      setTimeout(() => setNotification(''), 3000);
+    } catch (error) {
+      console.error("Error submitting form: ", error);
+      setError("Failed to submit data. Please try again later.");
+    }
   };
 
   // Prepare data for the bar chart
   const data = [
-    { name: 'Expected Income', value: expectedIncome },
+    { name: 'Expected Income', value: localExpectedIncome }, // Use localExpectedIncome here
     { name: 'Actual Income', value: transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0) },
     { name: 'Expenses', value: transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0) }
   ];

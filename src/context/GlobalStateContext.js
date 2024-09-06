@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, updateDoc, doc, getDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, doc, getDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const GlobalStateContext = createContext();
@@ -122,7 +122,14 @@ const GlobalStateProvider = ({ children }) => {
     setError(null);
     try {
       const docRef = doc(db, 'settings', 'expectedIncome');
-      await updateDoc(docRef, { value: income });
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        await updateDoc(docRef, { value: income });
+      } else {
+        await setDoc(docRef, { value: income });
+      }
+
       setExpectedIncome(income); // Update the state immediately
     } catch (error) {
       setError("Error updating expected income");

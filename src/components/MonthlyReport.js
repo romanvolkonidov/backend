@@ -1,32 +1,17 @@
 import React, { useState, useMemo, useContext, useEffect } from 'react';
 import { GlobalStateContext } from '../context/GlobalStateContext';
 import '../styles/MonthlyReport.css';
-import { db } from '../firebase';
-import { collection, getDocs, doc, deleteDoc } from 'firebase/firestore';
+
+const currencies = ['USD', 'KES', 'RUB'];
 
 const MonthlyReport = () => {
-  const { transactions, setTransactions, students } = useContext(GlobalStateContext);
+  const { transactions = [], students = [], exchangeRates = {}, setTransactions } = useContext(GlobalStateContext);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
   const [filterType, setFilterType] = useState('all');
   const [filterCategory, setFilterCategory] = useState('');
-  const [loading, setLoading] = useState(true);
   const [editingTransactionId, setEditingTransactionId] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'transactions'));
-        const items = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setTransactions(items);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching Firestore data: ", error);
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [setTransactions]);
+  const [selectedCurrency, setSelectedCurrency] = useState('USD');
+  const [error, setError] = useState(null);
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(t => {
@@ -38,17 +23,26 @@ const MonthlyReport = () => {
     });
   }, [transactions, selectedMonth, filterType, filterCategory]);
 
+  const convertToSelectedCurrency = (amount, currency) => {
+    if (!exchangeRates[currency] || !exchangeRates[selectedCurrency]) {
+      console.error(`Missing exchange rate for ${currency} or ${selectedCurrency}`);
+      return 0;
+    }
+    const rate = exchangeRates[selectedCurrency] / exchangeRates[currency];
+    return amount * rate;
+  };
+
   const totalIncome = useMemo(() => {
     return filteredTransactions
       .filter(t => t.type === 'income')
-      .reduce((sum, t) => sum + (typeof t.amount === 'number' ? t.amount : 0), 0);
-  }, [filteredTransactions]);
+      .reduce((sum, t) => sum + convertToSelectedCurrency(t.amount, t.currency || 'USD'), 0);
+  }, [filteredTransactions, selectedCurrency, exchangeRates]);
 
   const totalExpenses = useMemo(() => {
     return filteredTransactions
       .filter(t => t.type === 'expense')
-      .reduce((sum, t) => sum + (typeof t.amount === 'number' ? t.amount : 0), 0);
-  }, [filteredTransactions]);
+      .reduce((sum, t) => sum + convertToSelectedCurrency(t.amount, t.currency || 'USD'), 0);
+  }, [filteredTransactions, selectedCurrency, exchangeRates]);
 
   const handleRemoveTransaction = async (id) => {
     try {
@@ -79,13 +73,10 @@ const MonthlyReport = () => {
     setEditingTransactionId(null);
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div className="monthly-report">
       <h2>Monthly Report</h2>
+      {error && <p className="error-message">{error}</p>}
       <div>
         <label htmlFor="month">Month:</label>
         <input
@@ -121,8 +112,20 @@ const MonthlyReport = () => {
         </select>
       </div>
       <div>
-        <h3>Total Income: {totalIncome.toFixed(2)} KSH</h3>
-        <h3>Total Expenses: {totalExpenses.toFixed(2)} KSH</h3>
+        <label htmlFor="currency">Currency:</label>
+        <select
+          id="currency"
+          value={selectedCurrency}
+          onChange={(e) => setSelectedCurrency(e.target.value)}
+        >
+          {currencies.map(curr => (
+            <option key={curr} value={curr}>{curr}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <h3>Total Income: {totalIncome.toFixed(2)} {selectedCurrency}</h3>
+        <h3>Total Expenses: {totalExpenses.toFixed(2)} {selectedCurrency}</h3>
       </div>
       <div>
         <h3>Income</h3>
@@ -168,7 +171,7 @@ const MonthlyReport = () => {
               ) : (
                 <>
                   <span>
-                    {transaction.category}: {typeof transaction.amount === 'number' ? transaction.amount.toFixed(2) : transaction.amount} KSH - {transaction.date.split('T')[0]}
+                    {transaction.category}: {typeof transaction.amount === 'number' ? transaction.amount.toFixed(2) : transaction.amount} {transaction.currency || 'USD'} - {transaction.date.split('T')[0]}
                   </span>
                   <div className="button-group">
                     <button onClick={() => handleRemoveTransaction(transaction.id)} title="Remove this transaction">Remove</button>
@@ -224,7 +227,7 @@ const MonthlyReport = () => {
               ) : (
                 <>
                   <span>
-                    {transaction.category}: {typeof transaction.amount === 'number' ? transaction.amount.toFixed(2) : transaction.amount} KSH - {transaction.date.split('T')[0]}
+                    {transaction.category}: {typeof transaction.amount === 'number' ? transaction.amount.toFixed(2) : transaction.amount} {transaction.currency || 'USD'} - {transaction.date.split('T')[0]}
                   </span>
                   <div className="button-group">
                     <button onClick={() => handleRemoveTransaction(transaction.id)} title="Remove this transaction">Remove</button>

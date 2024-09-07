@@ -1,211 +1,142 @@
-/* Common styles */
-.student-management, .student-page {
+/* StudentManagement.css */
+
+.student-management {
   padding: 20px;
   font-family: Arial, sans-serif;
-  max-width: 800px;
-  margin: 0 auto;
-  text-align: center; /* Center align text */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
 }
 
-h2, h3 {
+.student-management h2 {
   margin-bottom: 20px;
-  color: #333;
 }
 
 form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  max-width: 400px;
-  margin: 0 auto 20px auto;
   background-color: #f9f9f9;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-label {
-  margin-bottom: 5px;
-  font-weight: bold;
-  color: #555;
-  text-align: left; /* Align labels to the left */
-}
-
-input[type="text"],
-input[type="number"],
-input[type="date"] {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 14px;
-}
-
-button {
-  padding: 10px 15px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  font-size: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-button:hover {
-  background-color: #0056b3;
-  transform: translateY(-2px);
-}
-
-/* List styles */
-.student-list ul, .payment-list ul {
-  list-style-type: none;
-  padding: 0;
-  margin-top: 20px;
-}
-
-.student-list li, .payment-list li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px;
-  border-bottom: 1px solid #eee;
-  transition: background-color 0.3s ease;
-}
-
-.student-list li:hover, .payment-list li:hover {
-  background-color: #f5f5f5;
-}
-
-.student-list .button-group, .payment-list .button-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.student-list .button-group button, .payment-list .button-group button {
-  padding: 5px 10px;
-  border: none;
-  background-color: #dc3545;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-top: 5px;
-}
-
-.student-list .button-group button:first-child, .payment-list .button-group button:first-child {
-  background-color: #007bff;
-}
-
-.student-list .button-group button:first-child:hover, .payment-list .button-group button:first-child:hover {
-  background-color: #0056b3;
-}
-
-.student-list .button-group button:hover, .payment-list .button-group button:hover {
-  background-color: #c82333;
-}
-
-.student-list .button-group button:last-child, .payment-list .button-group button:last-child {
-  background-color: #6c757d;
-}
-
-.student-list .button-group button:last-child:hover, .payment-list .button-group button:last-child:hover {
-  background-color: #5a6268;
-}
-
-/* Student list specific styles */
-.student-list a {
-  text-decoration: none;
-  color: #007bff;
-  font-weight: bold;
-}
-
-.student-list a:hover {
-  text-decoration: underline;
-}
-
-/* Chart container */
-.chart-container {
+  width: 100%;
   max-width: 600px;
-  margin: 20px auto;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Responsive design */
-@media (max-width: 600px) {
-  .student-management, .student-page {
-    padding: 10px;
-  }
-
-  form {
-    padding: 15px;
-  }
-
-  .student-list li, .payment-list li {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .student-list .button-group, .payment-list .button-group {
-    flex-direction: row;
-    justify-content: center;
-    margin-top: 10px;
-  }
-
-  .student-list li span, .payment-list li span {
-    text-align: center;
-    margin-bottom: 10px;
-  }
-}
-
-/* Align checkboxes with labels */
-.subjects-container {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
+form div {
+  display: flex;
+  flex-direction: column;
+}
+
+form label {
+  margin-bottom: 5px;
+}
+
+form input[type="text"],
+form input[type="number"],
+form select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+}
+
+.subjects-container {
+  display: flex;
+  gap: 10px;
+}
+
 .subject-item {
-  display: inline; /* Make checkboxes inline-block */
-  align-items: center;
-  justify-content: flex-start;
-  gap: 10px; /* Adds spacing between checkbox and label */
-  width: 20px;
-}
-
-.subject-item input[type="checkbox"] {
-  margin-right: 10px;
-   /* Reduced margin for closer alignment */
-}
-
-.subjects {
-  font-size: 18px;
-}
-.student-list ul {
-  list-style: none;
-  padding: 0;
-}
-
-.student-list li {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px;
-  border-bottom: 1px solid #ccc;
 }
 
-.student-list li span {
-  margin-right: 10px;
-}
-
-.student-list li a {
-  flex-grow: 1;
-  text-align: left;
+.subject-item input {
+  margin-right: 5px;
 }
 
 .button-group {
   display: flex;
   gap: 10px;
+}
+
+.student-list {
+  width: 100%;
+  max-width: 600px;
+}
+
+.student-list h3 {
+  margin-bottom: 10px;
+}
+
+.student-list div {
+  margin-bottom: 10px;
+}
+
+.student-list label {
+  margin-right: 10px;
+}
+
+.student-list input[type="text"] {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+}
+
+.student-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.transaction-item {
+  background-color: #f1f1f1;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.transaction-item span {
+  margin-right: 10px;
+}
+
+.transaction-item a {
+  flex: 1;
+  text-align: left;
+}
+
+.transaction-item .button-group {
+  display: flex;
+  gap: 10px;
+}
+
+.transaction-item .button-group button {
+  background-color: #2196f3;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.transaction-item .button-group button:hover {
+  background-color: #0b7dda;
+}
+
+.transaction-item .remove-button {
+  background-color: #f44336;
+}
+
+.transaction-item .remove-button:hover {
+  background-color: #e53935;
+}
+
+.error-message {
+  color: #f44336;
+  margin-bottom: 10px;
 }

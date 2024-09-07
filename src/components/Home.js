@@ -63,11 +63,20 @@ const Home = () => {
   };
 
   const convertToSelectedCurrency = (amount, currency) => {
-    if (!exchangeRates || !exchangeRates[currency] || !exchangeRates[selectedDisplayCurrency]) {
+    // No conversion needed if the selected display currency is KES
+    if (selectedDisplayCurrency === 'KES') {
       return amount;
     }
+    
+    if (!exchangeRates || !exchangeRates[currency] || !exchangeRates[selectedDisplayCurrency]) {
+      return amount; // Return the original amount if rates are not available
+    }
+
     const rate = exchangeRates[selectedDisplayCurrency] / exchangeRates[currency];
-    return amount * rate;
+    const convertedAmount = amount * rate;
+
+    // Round the converted amount to two decimal places
+    return parseFloat(convertedAmount.toFixed(2));
   };
 
   // Prepare data for the bar chart

@@ -31,8 +31,11 @@ const Home = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Convert the amount to KES if it's not already in KES
       const amountInKES = parseFloat(amount) * (exchangeRates[currency] || 1);
+      
       if (transactionType === 'expectedIncome') {
+        // Update expected income in KES
         await updateExpectedIncome(amountInKES);
         setLocalExpectedIncome(amountInKES); // Update local state immediately
         setNotification('Expected Income updated successfully!');

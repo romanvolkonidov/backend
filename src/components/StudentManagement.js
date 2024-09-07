@@ -17,6 +17,7 @@ const StudentManagement = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedCurrency, setSelectedCurrency] = useState('respective'); // Default to respective
+  const [searchTerm, setSearchTerm] = useState('');
   const formRef = useRef(null);
 
   useEffect(() => {
@@ -156,6 +157,10 @@ const StudentManagement = () => {
     return amount * rate;
   };
 
+  const filteredStudents = students.filter(student =>
+    student.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="student-management">
       <h2>Student Management</h2>
@@ -249,8 +254,17 @@ const StudentManagement = () => {
             ))}
           </select>
         </div>
+        <div>
+          <label htmlFor="searchTerm">Search Student:</label>
+          <input
+            type="text"
+            id="searchTerm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
         <ul>
-          {students.map((student, index) => (
+          {filteredStudents.map((student, index) => (
             <li key={student.id} className="transaction-item">
               <span>{index + 1}. </span>
               <Link to={`/student/${student.id}`}>

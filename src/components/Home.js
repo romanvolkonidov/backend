@@ -17,6 +17,8 @@ const Home = () => {
   const [error, setError] = useState(null);
   const [localExpectedIncome, setLocalExpectedIncome] = useState(expectedIncome);
   const [selectedDisplayCurrency, setSelectedDisplayCurrency] = useState('KES');
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 7)); // Default to current month
+  const [dateRange, setDateRange] = useState('month'); // Default to month
   const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
@@ -33,6 +35,13 @@ const Home = () => {
     e.preventDefault();
     try {
       const amountInSelectedCurrency = parseFloat(amount);
+
+      // Validation for expense category
+      if (transactionType === 'expense' && !selectedCategory) {
+        setError("Please select a category for the expense.");
+        return;
+      }
+
       if (transactionType === 'expectedIncome') {
         await updateExpectedIncome(amountInSelectedCurrency);
         setLocalExpectedIncome(amountInSelectedCurrency); // Update local state immediately
@@ -44,10 +53,12 @@ const Home = () => {
           amount: amountInSelectedCurrency,
           description: description,
           currency: currency,
+          date: new Date().toISOString().slice(0, 10), // Add current date
         };
         await addTransaction(newTransaction);
         setNotification('Transaction added successfully!');
       }
+
       // Reset form fields
       setSelectedCategory('');
       setAmount('');
@@ -61,6 +72,7 @@ const Home = () => {
 
       // Clear notification after 3 seconds
       setTimeout(() => setNotification(''), 3000);
+      setError(null); // Clear error message after successful submission
     } catch (error) {
       console.error("Error submitting form: ", error);
       setError("Failed to submit data. Please try again later.");
@@ -75,11 +87,20 @@ const Home = () => {
     return amount * rate;
   };
 
+  // Filter transactions based on the selected date range
+  const filteredTransactions = transactions.filter(t => {
+    if (dateRange === 'month') {
+      return t.date.startsWith(selectedDate);
+    } else {
+      return t.date.startsWith(selectedDate.slice(0, 4));
+    }
+  });
+
   // Prepare data for the bar chart
   const data = [
     { name: 'Expected Income', value: convertToSelectedCurrency(localExpectedIncome, 'KES') }, // Use localExpectedIncome here
-    { name: 'Actual Income', value: transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + convertToSelectedCurrency(t.amount, t.currency || 'KES'), 0) },
-    { name: 'Expenses', value: transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + convertToSelectedCurrency(t.amount, t.currency || 'KES'), 0) }
+    { name: 'Actual Income', value: filteredTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + convertToSelectedCurrency(t.amount, t.currency || 'KES'), 0) },
+    { name: 'Expenses', value: filteredTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + convertToSelectedCurrency(t.amount, t.currency || 'KES'), 0) }
   ];
 
   if (loading) {
@@ -100,14 +121,50 @@ const Home = () => {
       {/* Error handling */}
       {error && <p className="error-message">{error}</p>}
 
-      {/* Currency Selection Dropdown */}
-      <div className="currency-selector">
-        <label htmlFor="displayCurrency" aria-label="Select Display Currency">Display Currency:</label>
-        <select id="displayCurrency" name="displayCurrency" value={selectedDisplayCurrency} onChange={(e) => setSelectedDisplayCurrency(e.target.value)}>
-          {currencies.map(curr => (
-            <option key={curr} value={curr}>{curr}</option>
-          ))}
-        </select>
+      {/* Currency and Date Range Selection */}
+      <div className="selectors">
+        <div className="currency-selector">
+          <label htmlFor="displayCurrency" aria-label="Select Display Currency">Display Currency:</label>
+          <select id="displayCurrency" name="displayCurrency" value={selectedDisplayCurrency} onChange={(e) => setSelectedDisplayCurrency(e.target.value)}>
+            {currencies.map(curr => (
+              <option key={curr} value={curr}>{curr}</option>
+            ))}
+          </select>
+        </div>
+        <div className="date-range-selector">
+          <label>
+            <input
+              type="radio"
+              name="dateRange"
+              value="month"
+              checked={dateRange === 'month'}
+              onChange={() => setDateRange('month')}
+            />
+            Month
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="dateRange"
+              value="year"
+              checked={dateRange === 'year'}
+              onChange={() => setDateRange('year')}
+            />
+            Year
+          </label>
+        </div>
+        <div className="date-selector">
+          <label htmlFor="displayDate" aria-label="Select Display Date">{dateRange === 'month' ? 'Display Month:' : 'Display Year:'}</label>
+          <input
+            type={dateRange === 'month' ? 'month' : 'number'}
+            id="displayDate"
+            name="displayDate"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            min={dateRange === 'year' ? '1900' : undefined}
+            max={dateRange === 'year' ? new Date().getFullYear() : undefined}
+          />
+        </div>
       </div>
 
       {/* Responsive Bar Chart */}
@@ -178,6 +235,7 @@ const Home = () => {
             ))}
           </select>
         </div>
+        {error && <p className="error-message">{error}</p>}
         <button type="submit" className="submit-button" aria-label="Add Transaction">Add Transaction</button>
       </form>
 

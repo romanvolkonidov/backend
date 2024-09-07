@@ -31,26 +31,22 @@ const Home = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Convert the amount to KES for storage based on the selected currency
-      const amountInKES = parseFloat(amount) * (exchangeRates[currency] || 1);
-
+      const amountInSelectedCurrency = parseFloat(amount);
       if (transactionType === 'expectedIncome') {
-        // Update expected income in KES
-        await updateExpectedIncome(amountInKES);
-        setLocalExpectedIncome(amountInKES); // Update local state immediately
+        await updateExpectedIncome(amountInSelectedCurrency);
+        setLocalExpectedIncome(amountInSelectedCurrency); // Update local state immediately
         setNotification('Expected Income updated successfully!');
       } else if ((transactionType === 'expense' && selectedCategory) || transactionType === 'income') {
         const newTransaction = {
           type: transactionType,
           category: transactionType === 'income' ? 'Income' : selectedCategory,
-          amount: parseFloat(amount), // Store the original amount in the selected currency
+          amount: amountInSelectedCurrency,
           description: description,
           currency: currency,
         };
         await addTransaction(newTransaction);
         setNotification('Transaction added successfully!');
       }
-
       // Reset form fields
       setSelectedCategory('');
       setAmount('');
@@ -67,42 +63,19 @@ const Home = () => {
   };
 
   const convertToSelectedCurrency = (amount, currency) => {
-    // No conversion needed if the selected display currency is the same as the currency of the amount
-    if (selectedDisplayCurrency === currency) {
+    if (!exchangeRates || !exchangeRates[currency] || !exchangeRates[selectedDisplayCurrency]) {
       return amount;
     }
-
-    // Ensure exchange rates are available
-    if (!exchangeRates || !exchangeRates[currency] || !exchangeRates[selectedDisplayCurrency]) {
-      console.error('Exchange rates are missing.');
-      return amount; // Return the original amount if rates are not available
-    }
-
     const rate = exchangeRates[selectedDisplayCurrency] / exchangeRates[currency];
-    const convertedAmount = amount * rate;
-
-    // Round the converted amount to two decimal places
-    return parseFloat(convertedAmount.toFixed(2));
+    return amount * rate;
   };
 
   // Prepare data for the bar chart
   const data = [
-    { 
-      name: 'Expected Income', 
-      value: convertToSelectedCurrency(localExpectedIncome, 'KES') // Convert expected income to the selected display currency
-    }, 
-    { 
-      name: 'Actual Income', 
-      value: transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + convertToSelectedCurrency(t.amount, t.currency || 'KES'), 0) 
-    }, 
-    { 
-      name: 'Expenses', 
-      value: transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + convertToSelectedCurrency(t.amount, t.currency || 'KES'), 0) 
-    }
+    { name: 'Expected Income', value: convertToSelectedCurrency(localExpectedIncome, 'KES') }, // Use localExpectedIncome here
+    { name: 'Actual Income', value: transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + convertToSelectedCurrency(t.amount, t.currency || 'KES'), 0) },
+    { name: 'Expenses', value: transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + convertToSelectedCurrency(t.amount, t.currency || 'KES'), 0) }
   ];
-
-  console.log('Exchange Rates:', exchangeRates);
-  console.log('Converted Data:', data);
 
   if (loading) {
     return <div className="loading">Loading data...</div>;
@@ -140,7 +113,7 @@ const Home = () => {
             <XAxis dataKey="name" />
             <YAxis />
             <Tooltip formatter={(value) => value.toFixed(2)} />
-            <Legend />
+            <Legend formatter={(value) => value.replace('value', '')} />
             <Bar dataKey="value" radius={[10, 10, 0, 0]} fillOpacity={0.8}>
               {data.map((entry, index) => (
                 <Cell
@@ -190,15 +163,7 @@ const Home = () => {
         )}
         <div className="form-group">
           <label htmlFor="amount" aria-label="Enter Amount">Amount</label>
-          <input 
-            type="number" 
-            id="amount" 
-            name="amount" 
-            value={amount} 
-            onChange={(e) => setAmount(e.target.value)} 
-            required 
-            placeholder={`Enter amount in ${currency}`} // Hint to user
-          />
+          <input type="number" id="amount" name="amount" value={amount} onChange={(e) => setAmount(e.target.value)} required />
         </div>
         <div className="form-group">
           <label htmlFor="currency" aria-label="Select Currency">Currency</label>

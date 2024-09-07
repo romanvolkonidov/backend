@@ -1,19 +1,63 @@
+/* Home.css */
+
 .home {
   padding: 20px;
   font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
 }
 
 .home-title {
-  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
   margin-bottom: 20px;
 }
 
-.transaction-form {
+.exchange-rates {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.selectors {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.currency-selector,
+.date-range-selector,
+.date-selector {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  max-width: 400px;
-  margin: 0 auto;
+  align-items: center;
+}
+
+.currency-selector label,
+.date-range-selector label,
+.date-selector label {
+  margin-bottom: 5px;
+}
+
+.date-range-selector {
+  display: flex;
+  gap: 10px;
+}
+
+.transaction-form {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .form-group {
@@ -21,77 +65,63 @@
   flex-direction: column;
 }
 
-label {
+.form-group label {
   margin-bottom: 5px;
 }
 
-input, select {
-  padding: 10px;
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group select {
+  padding: 8px;
   border: 1px solid #ccc;
-  border-radius: 5px;
+  border-radius: 4px;
+  width: 100%;
 }
 
 .submit-button {
-  padding: 10px;
-  background-color: #007bff;
+  background-color: #4caf50;
   color: white;
+  padding: 10px;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   cursor: pointer;
+  align-self: flex-end;
 }
 
 .submit-button:hover {
-  background-color: #0056b3;
+  background-color: #45a049;
 }
 
-/* Media Queries for Responsiveness */
-@media (max-width: 768px) {
-  .transaction-form {
-    max-width: 100%;
-    padding: 10px;
-  }
-
-  .home-title {
-    font-size: 1.5em;
-  }
-
-  input, select {
-    padding: 8px;
-  }
-
-  .submit-button {
-    padding: 8px;
-  }
-}
-
-@media (max-width: 480px) {
-  .home {
-    padding: 10px;
-  }
-
-  .home-title {
-    font-size: 1.2em;
-  }
-
-  input, select {
-    padding: 6px;
-  }
-
-  .submit-button {
-    padding: 6px;
-  }
-}
-
-/* Additional styles in Home.css */
 .error-message {
-  color: red;
+  color: #f44336;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-weight: bold;
   text-align: center;
-  margin-bottom: 20px;
 }
 
 .notification {
-  color: green;
+  color: #4caf50;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.popup {
+  background-color: #4caf50;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.loading {
+  font-size: 18px;
+  font-weight: bold;
   text-align: center;
   margin-top: 20px;
-  font-weight: bold;
 }

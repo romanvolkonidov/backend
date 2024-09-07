@@ -25,6 +25,8 @@ const StudentPage = () => {
   const [currency, setCurrency] = useState('USD');
   const [displayCurrency, setDisplayCurrency] = useState('USD');
   const [convertedTransactions, setConvertedTransactions] = useState([]);
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState('');
 
   useEffect(() => {
     const foundStudent = students.find(s => s.id === id);
@@ -41,6 +43,9 @@ const StudentPage = () => {
         const updatedTransactions = [...transactions, { id: docRef.id, ...newTransaction }];
         setTransactions(updatedTransactions);
         resetPaymentForm();
+        setPopupMessage('Payment added successfully!');
+        setShowPopup(true);
+        setTimeout(() => setShowPopup(false), 3000); // Hide popup after 3 seconds
       } catch (error) {
         setError("Error adding payment");
       }
@@ -59,6 +64,9 @@ const StudentPage = () => {
         const updatedTransactions = [...transactions, { id: docRef.id, ...newLesson }];
         setTransactions(updatedTransactions);
         resetLessonForm();
+        setPopupMessage('Lesson added successfully!');
+        setShowPopup(true);
+        setTimeout(() => setShowPopup(false), 3000); // Hide popup after 3 seconds
       } catch (error) {
         setError("Error adding lesson");
       }
@@ -109,6 +117,9 @@ const StudentPage = () => {
       await updateDoc(transactionDoc, { amount: parseFloat(amount), date, currency });
       setTransactions(transactions.map(transaction => transaction.id === editingPaymentId ? { ...transaction, amount: parseFloat(amount), date, currency } : transaction));
       resetPaymentForm();
+      setPopupMessage('Payment updated successfully!');
+      setShowPopup(true);
+      setTimeout(() => setShowPopup(false), 3000); // Hide popup after 3 seconds
     } catch (error) {
       setError("Error updating payment");
     }
@@ -122,6 +133,9 @@ const StudentPage = () => {
       await updateDoc(transactionDoc, { description: lessonDescription, date: lessonDate, subject: selectedSubject });
       setTransactions(transactions.map(transaction => transaction.id === editingLessonId ? { ...transaction, description: lessonDescription, date: lessonDate, subject: selectedSubject } : transaction));
       resetLessonForm();
+      setPopupMessage('Lesson updated successfully!');
+      setShowPopup(true);
+      setTimeout(() => setShowPopup(false), 3000); // Hide popup after 3 seconds
     } catch (error) {
       setError("Error updating lesson");
     }
@@ -173,6 +187,8 @@ const StudentPage = () => {
   const filteredTransactions = convertedTransactions.filter(transaction => transaction.category === student.name);
   const payments = filteredTransactions.filter(transaction => transaction.type === 'income');
   const lessons = filteredTransactions.filter(transaction => transaction.type === 'lesson');
+  const englishLessons = lessons.filter(lesson => lesson.subject === 'English');
+  const itLessons = lessons.filter(lesson => lesson.subject === 'IT');
 
   const totalPaidLessons = payments.reduce((sum, payment) => sum + (convertToSelectedCurrency(payment.amount, payment.currency) / convertToSelectedCurrency(student.price, student.currency)), 0);
   const completedLessons = lessons.length;
@@ -210,95 +226,127 @@ const StudentPage = () => {
   const displayedTransactions = filter === 'All' ? filteredTransactions :
     filter === 'Payments' ? payments : lessons;
 
-  return (
-    <div className="student-page">
-      <div className="chart-info-container">
-        <div className="student-info">
-          <h2>{student.name}</h2>
-          <p className="info-item"><strong>Price per Lesson:</strong> {displayCurrency} {(convertToSelectedCurrency(student.price, student.currency)).toFixed(2)}</p>
-          <p className="info-item"><strong>Lessons Purchased:</strong> {totalPaidLessons.toFixed(2)}</p>
-          <p className="info-item"><strong>Lessons Completed:</strong> {completedLessons}</p>
-          <p className="info-item"><strong>Remaining Lessons:</strong> {positiveRemainingLessons}</p>
-          <p className="info-item"><strong>Debt Lessons:</strong> {debtLessons}</p>
-        </div>
-        <div className="chart-container">
-          <div className="chart-wrapper">
-            <Bar data={barData} options={barOptions} />
+    return (
+      <div className="student-page">
+        <div className="chart-info-container">
+          <div className="student-info">
+            <h2>{student.name}</h2>
+            <p className="info-item"><strong>Price per Lesson:</strong> {displayCurrency} {(convertToSelectedCurrency(student.price, student.currency)).toFixed(2)}</p>
+            <p className="info-item"><strong>Lessons Purchased:</strong> {totalPaidLessons.toFixed(2)}</p>
+            <p className="info-item"><strong>Lessons Completed:</strong> {completedLessons}</p>
+            <p className="info-item"><strong>Remaining Lessons:</strong> {positiveRemainingLessons}</p>
+            <p className="info-item"><strong>Debt Lessons:</strong> {debtLessons}</p>
+          </div>
+          <div className="chart-container">
+            <div className="chart-wrapper">
+              <Bar data={barData} options={barOptions} />
+            </div>
           </div>
         </div>
-      </div>
-      {error && <p className="error-message">{error}</p>}
-      <div className="forms-container">
-        <form onSubmit={editingPaymentId ? handleUpdatePayment : handleAddPayment}>
-          <h3>{editingPaymentId ? 'Edit Payment' : 'Add Payment'}</h3>
-          <div>
-            <label htmlFor="amount">Amount:</label>
-            <input type="number" id="amount" value={amount} onChange={(e) => setAmount(e.target.value)} required />
-            <select id="currency" value={currency} onChange={(e) => setCurrency(e.target.value)} required>
-              {currencies.map(curr => (
-                <option key={curr} value={curr}>{curr}</option>
+        {error && <p className="error-message">{error}</p>}
+        {showPopup && <div className="popup">{popupMessage}</div>}
+        <div className="forms-container">
+          <form onSubmit={editingPaymentId ? handleUpdatePayment : handleAddPayment}>
+            <h3>{editingPaymentId ? 'Edit Payment' : 'Add Payment'}</h3>
+            <div>
+              <label htmlFor="amount">Amount:</label>
+              <input type="number" id="amount" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+              <select id="currency" value={currency} onChange={(e) => setCurrency(e.target.value)} required>
+                {currencies.map(curr => (
+                  <option key={curr} value={curr}>{curr}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="date">Date:</label>
+              <input type="date" id="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+            </div>
+            <button type="submit" className="add-payment-button">{editingPaymentId ? 'Update Payment' : 'Add Payment'}</button>
+            {editingPaymentId && <button type="button" onClick={resetPaymentForm} className="cancel-button">Cancel</button>}
+          </form>
+          <form onSubmit={editingLessonId ? handleUpdateLesson : handleAddLesson}>
+            <h3>{editingLessonId ? 'Edit Lesson' : 'Add Lesson'}</h3>
+            <div>
+              <label htmlFor="lessonDescription">Lesson Description:</label>
+              <input type="text" id="lessonDescription" value={lessonDescription} onChange={(e) => setLessonDescription(e.target.value)} />
+            </div>
+            <div>
+              <label htmlFor="lessonDate">Lesson Date:</label>
+              <input type="date" id="lessonDate" value={lessonDate} onChange={(e) => setLessonDate(e.target.value)} required />
+            </div>
+            <div>
+              <label htmlFor="selectedSubject">Subject:</label>
+              <select id="selectedSubject" value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} required>
+                <option value="English">English</option>
+                <option value="IT">IT</option>
+              </select>
+            </div>
+            <button type="submit" className="add-lesson-button">{editingLessonId ? 'Update Lesson' : 'Add Lesson'}</button>
+            {editingLessonId && <button type="button" onClick={resetLessonForm} className="cancel-button">Cancel</button>}
+          </form>
+        </div>
+        <div className="dropdown">
+          <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+            <option value="All">All Transactions</option>
+            <option value="Payments">Payments</option>
+            <option value="Lessons">Completed Lessons</option>
+          </select>
+        </div>
+        <div className="dropdown">
+          <select value={displayCurrency} onChange={(e) => setDisplayCurrency(e.target.value)}>
+            {currencies.map(curr => (
+              <option key={curr} value={curr}>{curr}</option>
+            ))}
+          </select>
+        </div>
+        <div className="transactions-container">
+          <div className="transactions-list">
+            <h3>Payments</h3>
+            <ul>
+              {payments.map(transaction => (
+                <li key={transaction.id} className="transaction-item">
+                  Payment of {transaction.amount.toFixed(2)} {transaction.currency} on {transaction.date}
+                  <div className="button-group">
+                    <button onClick={() => handleEditPayment(transaction.id)}>Edit</button>
+                    <button onClick={() => handleRemoveTransaction(transaction.id)} className="remove-button">Remove</button>
+                  </div>
+                </li>
               ))}
-            </select>
+            </ul>
           </div>
-          <div>
-            <label htmlFor="date">Date:</label>
-            <input type="date" id="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+          <div className="transactions-list completed-lessons">
+            <h3>Completed Lessons</h3>
+            <div className="subject-list">
+              <h4>English</h4>
+              <ul>
+                {englishLessons.map(transaction => (
+                  <li key={transaction.id} className="transaction-item">
+                    {transaction.description} on {transaction.date}
+                    <div className="button-group">
+                      <button onClick={() => handleEditLesson(transaction.id)}>Edit</button>
+                      <button onClick={() => handleRemoveTransaction(transaction.id)} className="remove-button">Remove</button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="subject-list">
+              <h4>IT</h4>
+              <ul>
+                {itLessons.map(transaction => (
+                  <li key={transaction.id} className="transaction-item">
+                    {transaction.description} on {transaction.date}
+                    <div className="button-group">
+                      <button onClick={() => handleEditLesson(transaction.id)}>Edit</button>
+                      <button onClick={() => handleRemoveTransaction(transaction.id)} className="remove-button">Remove</button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <button type="submit" className="add-payment-button">{editingPaymentId ? 'Update Payment' : 'Add Payment'}</button>
-        </form>
-        <form onSubmit={editingLessonId ? handleUpdateLesson : handleAddLesson}>
-          <h3>{editingLessonId ? 'Edit Lesson' : 'Add Lesson'}</h3>
-          <div>
-            <label htmlFor="lessonDescription">Lesson Description:</label>
-            <input type="text" id="lessonDescription" value={lessonDescription} onChange={(e) => setLessonDescription(e.target.value)} />
-          </div>
-          <div>
-            <label htmlFor="lessonDate">Lesson Date:</label>
-            <input type="date" id="lessonDate" value={lessonDate} onChange={(e) => setLessonDate(e.target.value)} required />
-          </div>
-          <div>
-            <label htmlFor="selectedSubject">Subject:</label>
-            <select id="selectedSubject" value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} required>
-              <option value="English">English</option>
-              <option value="IT">IT</option>
-            </select>
-          </div>
-          <button type="submit" className="add-lesson-button">{editingLessonId ? 'Update Lesson' : 'Add Lesson'}</button>
-        </form>
+        </div>
       </div>
-      <div className="dropdown">
-        <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="All">All Transactions</option>
-          <option value="Payments">Payments</option>
-          <option value="Lessons">Completed Lessons</option>
-        </select>
-      </div>
-      <div className="dropdown">
-        <select value={displayCurrency} onChange={(e) => setDisplayCurrency(e.target.value)}>
-          {currencies.map(curr => (
-            <option key={curr} value={curr}>{curr}</option>
-          ))}
-        </select>
-      </div>
-      <div className="transactions-list">
-        <ul>
-          {displayedTransactions.map(transaction => (
-            <li key={transaction.id} className="transaction-item">
-              {transaction.type === 'income' ? (
-                <>Payment of {transaction.amount.toFixed(2)} {transaction.currency} on {transaction.date}</>
-              ) : (
-                <>{transaction.description} ({transaction.subject}) on {transaction.date}</>
-              )}
-              <div className="button-group">
-                <button onClick={() => transaction.type === 'income' ? handleEditPayment(transaction.id) : handleEditLesson(transaction.id)}>Edit</button>
-                <button onClick={() => handleRemoveTransaction(transaction.id)} className="remove-button">Remove</button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-};
-
-export default StudentPage;
+    );
+  }
+  export default StudentPage;

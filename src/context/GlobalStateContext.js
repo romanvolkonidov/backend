@@ -33,17 +33,6 @@ const GlobalStateProvider = ({ children }) => {
         const incomeValue = incomeDocSnap.data().value;
         setExpectedIncome(incomeValue);
       }
-
-      // Fetch exchange rates
-      const response = await fetch('https://v6.exchangerate-api.com/v6/3bbdd0fd4d206d7fbbf81174/latest/USD');
-      const data = await response.json();
-      const relevantRates = {
-        USD: data.conversion_rates.USD,
-        EUR: data.conversion_rates.EUR,
-        KES: data.conversion_rates.KES,
-        RUB: data.conversion_rates.RUB,
-      };
-      setExchangeRates(relevantRates);
     } catch (error) {
       setError("Error fetching data");
       console.error("Error fetching data: ", error);
@@ -52,8 +41,35 @@ const GlobalStateProvider = ({ children }) => {
     }
   };
 
+  const fetchExchangeRates = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const lastFetchTime = localStorage.getItem('lastFetchTime');
+      const now = new Date();
+      if (!lastFetchTime || (now - new Date(lastFetchTime)) > 24 * 60 * 60 * 1000) {
+        const response = await fetch('https://v6.exchangerate-api.com/v6/3bbdd0fd4d206d7fbbf81174/latest/USD');
+        const data = await response.json();
+        const relevantRates = {
+          USD: data.conversion_rates.USD,
+          EUR: data.conversion_rates.EUR,
+          KES: data.conversion_rates.KES,
+          RUB: data.conversion_rates.RUB,
+        };
+        setExchangeRates(relevantRates);
+        localStorage.setItem('lastFetchTime', new Date().toISOString());
+      }
+    } catch (error) {
+      setError("Error fetching exchange rates");
+      console.error("Error fetching exchange rates: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
+    fetchExchangeRates();
   }, []);
 
   const addTransaction = async (transaction) => {

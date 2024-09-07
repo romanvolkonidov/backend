@@ -31,9 +31,9 @@ const Home = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Convert the amount to KES if it's not already in KES
+      // Convert the amount to KES based on the selected currency
       const amountInKES = parseFloat(amount) * (exchangeRates[currency] || 1);
-      
+
       if (transactionType === 'expectedIncome') {
         // Update expected income in KES
         await updateExpectedIncome(amountInKES);
@@ -50,6 +50,7 @@ const Home = () => {
         await addTransaction(newTransaction);
         setNotification('Transaction added successfully!');
       }
+
       // Reset form fields
       setSelectedCategory('');
       setAmount('');
@@ -70,7 +71,7 @@ const Home = () => {
     if (selectedDisplayCurrency === 'KES') {
       return amount;
     }
-    
+
     if (!exchangeRates || !exchangeRates[currency] || !exchangeRates[selectedDisplayCurrency]) {
       return amount; // Return the original amount if rates are not available
     }

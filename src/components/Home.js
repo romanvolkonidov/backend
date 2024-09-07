@@ -31,7 +31,7 @@ const Home = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Convert the amount to KES based on the selected currency
+      // Convert the amount to KES based on the selected currency for storage
       const amountInKES = parseFloat(amount) * (exchangeRates[currency] || 1);
 
       if (transactionType === 'expectedIncome') {
@@ -43,7 +43,7 @@ const Home = () => {
         const newTransaction = {
           type: transactionType,
           category: transactionType === 'income' ? 'Income' : selectedCategory,
-          amount: amountInKES,
+          amount: parseFloat(amount), // Store the original amount in the selected currency
           description: description,
           currency: currency,
         };

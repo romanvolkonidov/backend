@@ -14,6 +14,8 @@ const MonthlyReport = () => {
   const [editingTransactionId, setEditingTransactionId] = useState(null);
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const [error, setError] = useState(null);
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState('');
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter(t => {
@@ -46,10 +48,20 @@ const MonthlyReport = () => {
       .reduce((sum, t) => sum + convertToSelectedCurrency(t.amount, t.currency || 'USD'), 0);
   }, [filteredTransactions, selectedCurrency, exchangeRates]);
 
+  useEffect(() => {
+    console.log('Exchange Rates:', exchangeRates);
+    console.log('Filtered Transactions:', filteredTransactions);
+    console.log('Total Income:', totalIncome);
+    console.log('Total Expenses:', totalExpenses);
+  }, [exchangeRates, filteredTransactions, totalIncome, totalExpenses]);
+
   const handleRemoveTransaction = async (id) => {
     try {
       await deleteDoc(doc(db, 'transactions', id));
       setTransactions(transactions.filter(transaction => transaction.id !== id));
+      setPopupMessage('Transaction removed successfully!');
+      setShowPopup(true);
+      setTimeout(() => setShowPopup(false), 3000); // Hide popup after 3 seconds
     } catch (error) {
       console.error("Error removing transaction: ", error);
     }
@@ -64,6 +76,9 @@ const MonthlyReport = () => {
       );
       setTransactions(updatedTransactions);
       setEditingTransactionId(null);
+      setPopupMessage('Transaction updated successfully!');
+      setShowPopup(true);
+      setTimeout(() => setShowPopup(false), 3000); // Hide popup after 3 seconds
     } catch (error) {
       console.error("Error editing transaction: ", error);
     }
@@ -75,6 +90,9 @@ const MonthlyReport = () => {
 
   const cancelEditing = () => {
     setEditingTransactionId(null);
+    setPopupMessage('Editing cancelled!');
+    setShowPopup(true);
+    setTimeout(() => setShowPopup(false), 3000); // Hide popup after 3 seconds
   };
 
   return (
@@ -154,32 +172,16 @@ const MonthlyReport = () => {
                       date: e.target.value
                     })}
                   />
-                  <input
-                    type="text"
-                    defaultValue={transaction.category}
-                    onBlur={(e) => handleEditTransaction({
-                      ...transaction,
-                      category: e.target.value
-                    })}
-                  />
-                  <input
-                    type="text"
-                    defaultValue={transaction.subject}
-                    onBlur={(e) => handleEditTransaction({
-                      ...transaction,
-                      subject: e.target.value
-                    })}
-                  />
                   <button onClick={cancelEditing}>Cancel</button>
+                  <button onClick={() => handleEditTransaction(transaction)}>Update</button>
                 </>
               ) : (
                 <>
-                  <span>
+                  <span onClick={() => startEditing(transaction.id)}>
                     {transaction.category}: {typeof transaction.amount === 'number' ? transaction.amount.toFixed(2) : transaction.amount} {transaction.currency || 'USD'} - {transaction.date.split('T')[0]}
                   </span>
                   <div className="button-group">
                     <button onClick={() => handleRemoveTransaction(transaction.id)} title="Remove this transaction">Remove</button>
-                    <button onClick={() => startEditing(transaction.id)} title="Edit this transaction">Edit</button>
                   </div>
                 </>
               )}
@@ -210,32 +212,16 @@ const MonthlyReport = () => {
                       date: e.target.value
                     })}
                   />
-                  <input
-                    type="text"
-                    defaultValue={transaction.category}
-                    onBlur={(e) => handleEditTransaction({
-                      ...transaction,
-                      category: e.target.value
-                    })}
-                  />
-                  <input
-                    type="text"
-                    defaultValue={transaction.subject}
-                    onBlur={(e) => handleEditTransaction({
-                      ...transaction,
-                      subject: e.target.value
-                    })}
-                  />
                   <button onClick={cancelEditing}>Cancel</button>
+                  <button onClick={() => handleEditTransaction(transaction)}>Update</button>
                 </>
               ) : (
                 <>
-                  <span>
+                  <span onClick={() => startEditing(transaction.id)}>
                     {transaction.category}: {typeof transaction.amount === 'number' ? transaction.amount.toFixed(2) : transaction.amount} {transaction.currency || 'USD'} - {transaction.date.split('T')[0]}
                   </span>
                   <div className="button-group">
                     <button onClick={() => handleRemoveTransaction(transaction.id)} title="Remove this transaction">Remove</button>
-                    <button onClick={() => startEditing(transaction.id)} title="Edit this transaction">Edit</button>
                   </div>
                 </>
               )}
@@ -243,6 +229,9 @@ const MonthlyReport = () => {
           ))}
         </ul>
       </div>
+
+      {/* Submission Popup */}
+      {showPopup && <div className="popup">{popupMessage}</div>}
     </div>
   );
 };

@@ -67,8 +67,8 @@ const Home = () => {
   };
 
   const convertToSelectedCurrency = (amount, currency) => {
-    // No conversion needed if the selected display currency is KES
-    if (selectedDisplayCurrency === 'KES') {
+    // No conversion needed if the selected display currency is the same as the currency of the amount
+    if (selectedDisplayCurrency === currency) {
       return amount;
     }
 
@@ -135,7 +135,7 @@ const Home = () => {
             <XAxis dataKey="name" />
             <YAxis />
             <Tooltip formatter={(value) => value.toFixed(2)} />
-            <Legend formatter={(value) => value.replace('value', '')} />
+            <Legend />
             <Bar dataKey="value" radius={[10, 10, 0, 0]} fillOpacity={0.8}>
               {data.map((entry, index) => (
                 <Cell

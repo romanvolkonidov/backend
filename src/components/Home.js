@@ -3,7 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { GlobalStateContext } from '../context/GlobalStateContext';
 import '../styles/Home.css';
 
-const expenseCategories = ['Rent', 'Utilities', 'Groceries', 'Clothing', 'Transportation', 'Healthcare', 'Personal Care', 'Household Items', 'Friends', 'Entertainment', 'Online Subscriptions', 'Savings'];
+const expenseCategories = ['Rent', 'Utilities', 'Groceries', 'Clothing', 'Transportation', 'Healthcare', 'Personal Care', 'Household Items', 'Friends', 'Entertainment', 'Mobile phones', 'Others', 'Online Subscriptions', 'Savings'];
 const currencies = ['KES', 'USD', 'RUB'];
 
 const Home = () => {

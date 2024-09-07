@@ -183,3 +183,29 @@ button:hover {
 .subjects {
   font-size: 18px;
 }
+.student-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.student-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.student-list li span {
+  margin-right: 10px;
+}
+
+.student-list li a {
+  flex-grow: 1;
+  text-align: left;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+}

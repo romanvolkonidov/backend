@@ -31,7 +31,7 @@ const Home = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Convert the amount to KES based on the selected currency for storage
+      // Convert the amount to KES for storage based on the selected currency
       const amountInKES = parseFloat(amount) * (exchangeRates[currency] || 1);
 
       if (transactionType === 'expectedIncome') {
@@ -187,7 +187,15 @@ const Home = () => {
         )}
         <div className="form-group">
           <label htmlFor="amount" aria-label="Enter Amount">Amount</label>
-          <input type="number" id="amount" name="amount" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+          <input 
+            type="number" 
+            id="amount" 
+            name="amount" 
+            value={amount} 
+            onChange={(e) => setAmount(e.target.value)} 
+            required 
+            placeholder={`Enter amount in ${currency}`} // Hint to user
+          />
         </div>
         <div className="form-group">
           <label htmlFor="currency" aria-label="Select Currency">Currency</label>

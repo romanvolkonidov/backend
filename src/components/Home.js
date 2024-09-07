@@ -81,9 +81,20 @@ const Home = () => {
 
   // Prepare data for the bar chart
   const data = [
-    { name: 'Expected Income', value: convertToSelectedCurrency(localExpectedIncome, 'KES') }, // Convert expected income to selected currency
-    { name: 'Actual Income', value: transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + convertToSelectedCurrency(t.amount, t.currency || 'KES'), 0) }, // Convert actual income to selected currency
-    { name: 'Expenses', value: transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + convertToSelectedCurrency(t.amount, t.currency || 'KES'), 0) } // Convert expenses to selected currency
+    { 
+      name: 'Expected Income', 
+      value: selectedDisplayCurrency === 'KES' 
+        ? localExpectedIncome // Use localExpectedIncome directly if KES
+        : convertToSelectedCurrency(localExpectedIncome, 'KES') // Convert if not KES
+    }, 
+    { 
+      name: 'Actual Income', 
+      value: transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + convertToSelectedCurrency(t.amount, t.currency || 'KES'), 0) 
+    }, 
+    { 
+      name: 'Expenses', 
+      value: transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + convertToSelectedCurrency(t.amount, t.currency || 'KES'), 0) 
+    }
   ];
 
   if (loading) {

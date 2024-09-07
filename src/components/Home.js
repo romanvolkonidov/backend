@@ -17,6 +17,7 @@ const Home = () => {
   const [error, setError] = useState(null);
   const [localExpectedIncome, setLocalExpectedIncome] = useState(expectedIncome);
   const [selectedDisplayCurrency, setSelectedDisplayCurrency] = useState('KES');
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     setLocalExpectedIncome(expectedIncome);
@@ -53,6 +54,10 @@ const Home = () => {
       setDescription('');
       setCurrency('KES');
       setTransactionType('expense'); // Reset to default value
+
+      // Show popup
+      setShowPopup(true);
+      setTimeout(() => setShowPopup(false), 3000); // Hide popup after 3 seconds
 
       // Clear notification after 3 seconds
       setTimeout(() => setNotification(''), 3000);
@@ -178,6 +183,9 @@ const Home = () => {
 
       {/* Notification Message */}
       {notification && <p className="notification">{notification}</p>}
+
+      {/* Submission Popup */}
+      {showPopup && <div className="popup">Submission Successful!</div>}
     </div>
   );
 };

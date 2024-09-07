@@ -72,7 +72,9 @@ const Home = () => {
       return amount;
     }
 
+    // Ensure exchange rates are available
     if (!exchangeRates || !exchangeRates[currency] || !exchangeRates[selectedDisplayCurrency]) {
+      console.error('Exchange rates are missing.');
       return amount; // Return the original amount if rates are not available
     }
 
@@ -98,6 +100,9 @@ const Home = () => {
       value: transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + convertToSelectedCurrency(t.amount, t.currency || 'KES'), 0) 
     }
   ];
+
+  console.log('Exchange Rates:', exchangeRates);
+  console.log('Converted Data:', data);
 
   if (loading) {
     return <div className="loading">Loading data...</div>;

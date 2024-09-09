@@ -1,21 +1,43 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/Navbar.css'; // Adjust the path as necessary
 
 const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
     <nav className="navbar">
-      <ul>
-        <li>
-          <Link to="/">Home</Link>
-        </li>
-        <li>
-          <Link to="/monthly-report">Monthly Report</Link>
-        </li>
-        <li>
-          <Link to="/students">Student Management</Link>
-        </li>
-      </ul>
+      <div className="navbar-container">
+        <div className="menu-icon" onClick={toggleMenu}>
+          <i className={isOpen ? 'fas fa-times' : 'fas fa-bars'}></i>
+        </div>
+        <ul className={isOpen ? 'nav-menu active' : 'nav-menu'}>
+          <li className="nav-item">
+            <Link to="/" className="nav-links" onClick={toggleMenu}>
+              Home
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/monthly-report" className="nav-links" onClick={toggleMenu}>
+              Monthly Report
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/students" className="nav-links" onClick={toggleMenu}>
+              Student Management
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link to="/student-events" className="nav-links" onClick={toggleMenu}>
+              Student Events
+            </Link>
+          </li>
+        </ul>
+      </div>
     </nav>
   );
 };

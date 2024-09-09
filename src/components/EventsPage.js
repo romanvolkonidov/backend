@@ -26,11 +26,13 @@ const EventsPage = () => {
       setLoading(true);
       setError(null);
       try {
+        console.log('Fetching events from API...');
         const response = await fetch('https://test-il25.onrender.com/events');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const eventsData = await response.json();
+        console.log('Events data fetched:', eventsData);
         const formattedEvents = Object.values(eventsData).flat();
         setEvents(formattedEvents);
       } catch (err) {

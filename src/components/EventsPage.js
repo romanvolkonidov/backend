@@ -58,7 +58,7 @@ const EventsPage = () => {
     if (studentsInEvent.length > 0) {
       setCurrentStudents(studentsInEvent);
       setLessonDescription(eventSummary);
-      setLessonDate(eventStart);
+      setLessonDate(new Date(eventStart).toISOString().slice(0, 10)); // Ensure correct date format
       setSelectedSubject('English'); // You can adjust this as needed
       setCurrentStudentIndex(0);
       setShowLessonForm(true);
@@ -123,11 +123,16 @@ const EventsPage = () => {
       {showPopup && <div className="popup">{popupMessage}</div>}
       <ul>
         {Object.keys(events).length > 0 ? (
-          Object.entries(events).map(([eventKey, eventArray]) => (
-            eventArray.map((event, subIndex) => {
+          Object.entries(events)
+            .flatMap(([eventKey, eventArray]) => eventArray)
+            .sort((a, b) => new Date(a.start) - new Date(b.start))
+            .filter((event, index, self) =>
+              index === self.findIndex((e) => e.summary === event.summary && e.start === event.start)
+            )
+            .map((event, index) => {
               const studentsInEvent = students.filter((student) => event.summary.includes(student.name));
               return (
-                <li key={`${eventKey}-${subIndex}`} className="calendar-event">
+                <li key={index} className="calendar-event">
                   {event.summary} - {new Date(event.start).toLocaleTimeString()} to {new Date(event.end).toLocaleTimeString()}
                   {studentsInEvent.length > 0 && (
                     <button onClick={() => handleAddLessonClick(event.summary, event.start)}>Add Lesson</button>
@@ -135,7 +140,6 @@ const EventsPage = () => {
                 </li>
               );
             })
-          ))
         ) : (
           <p>No events available</p>
         )}

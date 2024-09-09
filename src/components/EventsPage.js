@@ -7,7 +7,7 @@ import { db } from '../firebase';
 
 const EventsPage = () => {
   const { students, transactions, setTransactions } = useContext(GlobalStateContext);
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showLessonForm, setShowLessonForm] = useState(false);
@@ -31,6 +31,7 @@ const EventsPage = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const eventsData = await response.json();
+        console.log('Fetched events data:', eventsData); // Debugging log
         setEvents(eventsData);
       } catch (err) {
         setError('Error fetching events');
@@ -103,17 +104,24 @@ const EventsPage = () => {
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {showPopup && <div className="popup">{popupMessage}</div>}
       <ul>
-        {events.map((event, index) => {
-          const studentsInEvent = students.filter((student) => event.summary.includes(student.name));
-          return (
-            <li key={index} className="calendar-event">
-              {event.summary} - {new Date(event.start).toLocaleTimeString()} to {new Date(event.end).toLocaleTimeString()}
-              {studentsInEvent.length > 0 && (
-                <button onClick={() => handleAddLessonClick(event.summary, event.start)}>Add Lesson</button>
-              )}
-            </li>
-          );
-        })}
+        {Object.entries(events).map(([summary, eventList], index) => (
+          <li key={index} className="calendar-event">
+            <h3>{summary}</h3>
+            <ul>
+              {Array.isArray(eventList) ? eventList.map((event, eventIndex) => {
+                const studentsInEvent = students.filter((student) => event.summary.includes(student.name));
+                return (
+                  <li key={eventIndex}>
+                    {new Date(event.start).toLocaleTimeString()} to {new Date(event.end).toLocaleTimeString()}
+                    {studentsInEvent.length > 0 && (
+                      <button onClick={() => handleAddLessonClick(event.summary, event.start)}>Add Lesson</button>
+                    )}
+                  </li>
+                );
+              }) : <li>Invalid event list</li>}
+            </ul>
+          </li>
+        ))}
       </ul>
       {showLessonForm && (
         <form onSubmit={handleAddLesson} className={fadeIn ? 'fade-in' : ''} onAnimationEnd={() => setFadeIn(false)}>

@@ -5,6 +5,7 @@ import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestor
 import '../styles/MonthlyReport.css';
 
 const currencies = ['USD', 'KES', 'RUB'];
+const expenseCategories = ['Rent', 'Utilities', 'Groceries', 'Clothing', 'Transportation', 'Healthcare', 'Personal Care', 'Household Items', 'Friends', 'Entertainment', 'Online Subscriptions', 'Savings']; // Define expense categories
 
 const MonthlyReport = () => {
   const { transactions = [], students = [], exchangeRates = {}, setTransactions } = useContext(GlobalStateContext);
@@ -17,15 +18,27 @@ const MonthlyReport = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState('');
 
+  const incomeCategories = useMemo(() => {
+    const studentNames = students.map(student => student.name);
+    return [...studentNames, 'Other'];
+  }, [students]);
+
   const filteredTransactions = useMemo(() => {
-    return transactions.filter(t => {
+    const filtered = transactions.filter(t => {
       const matchesMonth = t.date && t.date.startsWith(selectedMonth);
       const matchesType = filterType === 'all' || t.type === filterType;
-      const matchesCategory = filterCategory ? t.category === filterCategory : true;
+      const matchesCategory = filterCategory ? (
+        filterCategory === 'Other' ? 
+          !incomeCategories.includes(t.category) : 
+          t.category === filterCategory
+      ) : true;
       const isNotLesson = t.type !== 'lesson';
       return matchesMonth && matchesType && matchesCategory && isNotLesson;
     });
-  }, [transactions, selectedMonth, filterType, filterCategory]);
+
+    // Sort transactions by date and time in descending order
+    return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+  }, [transactions, selectedMonth, filterType, filterCategory, incomeCategories]);
 
   const convertToSelectedCurrency = (amount, currency) => {
     if (!exchangeRates[currency] || !exchangeRates[selectedCurrency]) {
@@ -128,8 +141,11 @@ const MonthlyReport = () => {
           onChange={(e) => setFilterCategory(e.target.value)}
         >
           <option value="">All</option>
-          {students.map(student => (
-            <option key={student.name} value={student.name}>{student.name}</option>
+          {filterType === 'income' && incomeCategories.map(category => (
+            <option key={category} value={category}>{category}</option>
+          ))}
+          {filterType === 'expense' && expenseCategories.map(category => (
+            <option key={category} value={category}>{category}</option>
           ))}
         </select>
       </div>

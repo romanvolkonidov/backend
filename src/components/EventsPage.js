@@ -2,6 +2,8 @@ import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlobalStateContext } from '../context/GlobalStateContext';
 import '../styles/EventsPage.css'; // Import the CSS file
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 const EventsPage = () => {
   const { students, transactions, setTransactions } = useContext(GlobalStateContext);
@@ -59,25 +61,16 @@ const EventsPage = () => {
     const currentStudent = currentStudents[currentStudentIndex];
     if (selectedSubject && currentStudent) {
       const newLesson = {
-        student_name: currentStudent.name,
+        type: 'lesson',
+        category: currentStudent.name,
         description: lessonDescription,
         date: lessonDate,
         subject: selectedSubject,
       };
       try {
-        const response = await fetch('https://test-il25.onrender.com/add_lesson', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(newLesson),
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const result = await response.json();
-        const updatedTransactions = [...transactions, { id: result.id, ...newLesson }];
-        setTransactions(updatedTransactions);
+        const docRef = await addDoc(collection(db, 'transactions'), newLesson);
+        const updatedTransactions = [...transactions, { id: docRef.id, ...newLesson }];
+        setTransactions(updatedTransactions); // Update global state
         setPopupMessage(`Lesson for ${currentStudent.name} added successfully!`);
         setShowPopup(true);
         setTimeout(() => {

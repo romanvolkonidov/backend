@@ -24,3 +24,7 @@ build/
 
 # Ignore firebase.js in src
 src/firebase.js
+
+src/firebase.js
+build/static/js/main.6a7ad994.js.map
+build/static/js/main.6a7ad994.js

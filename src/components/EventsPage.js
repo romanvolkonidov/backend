@@ -19,6 +19,7 @@ const EventsPage = () => {
   const [currentStudents, setCurrentStudents] = useState([]);
   const [currentStudentIndex, setCurrentStudentIndex] = useState(0);
   const [fadeIn, setFadeIn] = useState(false); // State to trigger fade-in animation
+  const [fadeOut, setFadeOut] = useState(false); // State to trigger fade-out animation
   const navigate = useNavigate();
   const formRef = useRef(null); // Reference to the form element
 
@@ -85,11 +86,19 @@ const EventsPage = () => {
         setTimeout(() => {
           setShowPopup(false);
           if (currentStudentIndex < currentStudents.length - 1) {
-            setCurrentStudentIndex(currentStudentIndex + 1);
-            setFadeIn(true); // Trigger fade-in animation for next student
+            setFadeOut(true); // Trigger fade-out animation
+            setTimeout(() => {
+              setCurrentStudentIndex(currentStudentIndex + 1);
+              setFadeIn(true); // Trigger fade-in animation for next student
+              setFadeOut(false); // Reset fade-out state
+            }, 1000); // Match the duration of the fade-out animation
           } else {
-            setShowLessonForm(false);
-            window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll back to the top
+            setFadeOut(true); // Trigger fade-out animation
+            setTimeout(() => {
+              setShowLessonForm(false);
+              setFadeOut(false); // Reset fade-out state
+              window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll back to the top
+            }, 1000); // Match the duration of the fade-out animation
           }
         }, 3000);
       } catch (error) {
@@ -132,7 +141,16 @@ const EventsPage = () => {
         )}
       </ul>
       {showLessonForm && (
-        <form ref={formRef} onSubmit={handleAddLesson} className={fadeIn ? 'fade-in' : ''} onAnimationEnd={() => setFadeIn(false)}>
+        <form
+          ref={formRef}
+          onSubmit={handleAddLesson}
+          className={`${fadeIn ? 'fade-in' : ''} ${fadeOut ? 'fade-out' : ''}`}
+          onAnimationEnd={() => {
+            if (fadeOut) {
+              setFadeOut(false); // Reset fade-out state after animation ends
+            }
+          }}
+        >
           <h2>Add Lesson for {currentStudents[currentStudentIndex]?.name}</h2>
           <div>
             <label>Description:</label>
@@ -156,5 +174,6 @@ const EventsPage = () => {
       )}
     </div>
   );
-}
+};
+
 export default EventsPage;

@@ -31,7 +31,8 @@ const EventsPage = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const eventsData = await response.json();
-        setEvents(eventsData);
+        const formattedEvents = Object.values(eventsData).flat();
+        setEvents(formattedEvents);
       } catch (err) {
         setError('Error fetching events');
         console.error('Error fetching events:', err);

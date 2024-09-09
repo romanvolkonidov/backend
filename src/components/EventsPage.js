@@ -18,7 +18,7 @@ const EventsPage = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [currentStudents, setCurrentStudents] = useState([]);
   const [currentStudentIndex, setCurrentStudentIndex] = useState(0);
-  const [slideFadeIn, setSlideFadeIn] = useState(false); // State to trigger slide-fade-in animation
+  const [fadeIn, setFadeIn] = useState(false); // State to trigger fade-in animation
   const navigate = useNavigate();
   const formRef = useRef(null); // Reference to the form element
 
@@ -61,7 +61,7 @@ const EventsPage = () => {
       setSelectedSubject('English'); // You can adjust this as needed
       setCurrentStudentIndex(0);
       setShowLessonForm(true);
-      setSlideFadeIn(true); // Trigger slide-fade-in animation
+      setFadeIn(true); // Trigger fade-in animation
     }
   };
 
@@ -86,7 +86,7 @@ const EventsPage = () => {
           setShowPopup(false);
           if (currentStudentIndex < currentStudents.length - 1) {
             setCurrentStudentIndex(currentStudentIndex + 1);
-            setSlideFadeIn(true); // Trigger slide-fade-in animation for next student
+            setFadeIn(true); // Trigger fade-in animation for next student
           } else {
             setShowLessonForm(false);
             window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll back to the top
@@ -114,11 +114,11 @@ const EventsPage = () => {
       {showPopup && <div className="popup">{popupMessage}</div>}
       <ul>
         {Object.keys(events).length > 0 ? (
-          Object.keys(events).map((eventKey, index) => (
-            events[eventKey].map((event, subIndex) => {
+          Object.entries(events).map(([eventKey, eventArray]) => (
+            eventArray.map((event, subIndex) => {
               const studentsInEvent = students.filter((student) => event.summary.includes(student.name));
               return (
-                <li key={`${index}-${subIndex}`} className="calendar-event">
+                <li key={`${eventKey}-${subIndex}`} className="calendar-event">
                   {event.summary} - {new Date(event.start).toLocaleTimeString()} to {new Date(event.end).toLocaleTimeString()}
                   {studentsInEvent.length > 0 && (
                     <button onClick={() => handleAddLessonClick(event.summary, event.start)}>Add Lesson</button>
@@ -132,12 +132,7 @@ const EventsPage = () => {
         )}
       </ul>
       {showLessonForm && (
-        <form
-          ref={formRef}
-          onSubmit={handleAddLesson}
-          className={slideFadeIn ? 'slide-fade-in' : ''}
-          onAnimationEnd={() => setSlideFadeIn(false)}
-        >
+        <form ref={formRef} onSubmit={handleAddLesson} className={fadeIn ? 'fade-in' : ''} onAnimationEnd={() => setFadeIn(false)}>
           <h2>Add Lesson for {currentStudents[currentStudentIndex]?.name}</h2>
           <div>
             <label>Description:</label>
@@ -161,6 +156,5 @@ const EventsPage = () => {
       )}
     </div>
   );
-};
-
+}
 export default EventsPage;

@@ -28,7 +28,7 @@ const EventsPage = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch('https://test-il25.onrender.com/events');
+        const response = await fetch('https://node1-q71v-aqs67cixe-romans-projects-fb0eaccb.vercel.app/events');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

@@ -53,18 +53,23 @@ const EventsPage = () => {
     }
   }, [showLessonForm]);
 
-  const handleAddLessonClick = (eventSummary, eventStart) => {
-    const studentsInEvent = students.filter((student) => eventSummary.includes(student.name));
-    if (studentsInEvent.length > 0) {
-      setCurrentStudents(studentsInEvent);
-      setLessonDescription(eventSummary);
-      setLessonDate(new Date(eventStart).toISOString().slice(0, 10)); // Ensure correct date format
-      setSelectedSubject('English'); // You can adjust this as needed
-      setCurrentStudentIndex(0);
-      setShowLessonForm(true);
-      setFadeIn(true); // Trigger fade-in animation
-    }
-  };
+const handleAddLessonClick = (eventSummary, eventStart) => {
+  const studentsInEvent = students.filter((student) => {
+    const studentNames = student.name.split(' ');
+    return studentNames.some(namePart => eventSummary.includes(namePart));
+  });
+  console.log('Event Summary:', eventSummary); // Debugging log
+  console.log('Students in Event:', studentsInEvent); // Debugging log
+  if (studentsInEvent.length > 0) {
+    setCurrentStudents(studentsInEvent);
+    setLessonDescription(eventSummary);
+    setLessonDate(new Date(eventStart).toISOString().slice(0, 10)); // Ensure correct date format
+    setSelectedSubject('English'); // You can adjust this as needed
+    setCurrentStudentIndex(0);
+    setShowLessonForm(true);
+    setFadeIn(true); // Trigger fade-in animation
+  }
+};
 
   const handleAddLesson = async (e) => {
     e.preventDefault();
@@ -122,28 +127,33 @@ const EventsPage = () => {
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {showPopup && <div className="popup">{popupMessage}</div>}
       <ul>
-        {Object.keys(events).length > 0 ? (
-          Object.entries(events)
-            .flatMap(([eventKey, eventArray]) => eventArray)
-            .sort((a, b) => new Date(a.start) - new Date(b.start))
-            .filter((event, index, self) =>
-              index === self.findIndex((e) => e.summary === event.summary && e.start === event.start)
-            )
-            .map((event, index) => {
-              const studentsInEvent = students.filter((student) => event.summary.includes(student.name));
-              return (
-                <li key={index} className="calendar-event">
-                  {event.summary} - {new Date(event.start).toLocaleTimeString()} to {new Date(event.end).toLocaleTimeString()}
-                  {studentsInEvent.length > 0 && (
-                    <button onClick={() => handleAddLessonClick(event.summary, event.start)}>Add Lesson</button>
-                  )}
-                </li>
-              );
-            })
-        ) : (
-          <p>No events available</p>
-        )}
-      </ul>
+  {Object.keys(events).length > 0 ? (
+    Object.entries(events)
+      .flatMap(([eventKey, eventArray]) => eventArray)
+      .sort((a, b) => new Date(a.start) - new Date(b.start))
+      .filter((event, index, self) =>
+        index === self.findIndex((e) => e.summary === event.summary && e.start === event.start)
+      )
+      .map((event, index) => {
+        const studentsInEvent = students.filter((student) => {
+          const studentNames = student.name.split(' ');
+          return studentNames.some(namePart => event.summary.includes(namePart));
+        });
+        console.log('Event:', event); // Debugging log
+        console.log('Students in Event:', studentsInEvent); // Debugging log
+        return (
+          <li key={index} className="calendar-event">
+            {event.summary} - {new Date(event.start).toLocaleTimeString()} to {new Date(event.end).toLocaleTimeString()}
+            {studentsInEvent.length > 0 && (
+              <button onClick={() => handleAddLessonClick(event.summary, event.start)}>Add Lesson</button>
+            )}
+          </li>
+        );
+      })
+  ) : (
+    <p>No events available</p>
+  )}
+</ul>
       {showLessonForm && (
         <form
           ref={formRef}

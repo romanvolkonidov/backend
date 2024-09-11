@@ -28,7 +28,7 @@ const EventsPage = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch('https://node1-q71v-aqs67cixe-romans-projects-fb0eaccb.vercel.app/events');
+        const response = await fetch('https://node1-wjn7-3dk9if1sn-romans-projects-fb0eaccb.vercel.app/api/events');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

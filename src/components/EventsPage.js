@@ -4,10 +4,11 @@ import { GlobalStateContext } from '../context/GlobalStateContext';
 import '../styles/EventsPage.css'; // Import the CSS file
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { DateTime } from 'luxon';
 
 const EventsPage = () => {
   const { students, transactions, setTransactions } = useContext(GlobalStateContext);
-  const [events, setEvents] = useState({}); // Initialize as an empty object
+  const [events, setEvents] = useState([]); // Initialize as an empty array
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showLessonForm, setShowLessonForm] = useState(false);
@@ -34,11 +35,25 @@ const EventsPage = () => {
         }
         const eventsData = await response.json();
         console.log('Fetched events:', eventsData); // Debugging log
-        setEvents(eventsData); // Set events to the fetched data
+
+        // Filter and sort events for today
+        const today = DateTime.now().startOf('day');
+        const todayEvents = Object.entries(eventsData)
+          .flatMap(([eventKey, eventArray]) => eventArray)
+          .filter(event => {
+            const eventStart = DateTime.fromISO(event.start);
+            return eventStart.hasSame(today, 'day');
+          })
+          .sort((a, b) => new Date(a.start) - new Date(b.start))
+          .filter((event, index, self) =>
+            index === self.findIndex((e) => e.summary === event.summary && e.start === event.start)
+          );
+
+        setEvents(todayEvents); // Set events to the filtered and sorted data
       } catch (err) {
         setError('Error fetching events');
         console.error('Error fetching events:', err);
-        setEvents({}); // Ensure events is an object even if fetch fails
+        setEvents([]); // Ensure events is an array even if fetch fails
       } finally {
         setLoading(false);
       }
@@ -122,24 +137,18 @@ const EventsPage = () => {
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {showPopup && <div className="popup">{popupMessage}</div>}
       <ul>
-        {Object.keys(events).length > 0 ? (
-          Object.entries(events)
-            .flatMap(([eventKey, eventArray]) => eventArray)
-            .sort((a, b) => new Date(a.start) - new Date(b.start))
-            .filter((event, index, self) =>
-              index === self.findIndex((e) => e.summary === event.summary && e.start === event.start)
-            )
-            .map((event, index) => {
-              const studentsInEvent = students.filter((student) => event.summary.includes(student.name));
-              return (
-                <li key={index} className="calendar-event">
-                  {event.summary} - {new Date(event.start).toLocaleTimeString()} to {new Date(event.end).toLocaleTimeString()}
-                  {studentsInEvent.length > 0 && (
-                    <button onClick={() => handleAddLessonClick(event.summary, event.start)}>Add Lesson</button>
-                  )}
-                </li>
-              );
-            })
+        {events.length > 0 ? (
+          events.map((event, index) => {
+            const studentsInEvent = students.filter((student) => event.summary.includes(student.name));
+            return (
+              <li key={index} className="calendar-event">
+                {event.summary} - {new Date(event.start).toLocaleTimeString()} to {new Date(event.end).toLocaleTimeString()}
+                {studentsInEvent.length > 0 && (
+                  <button onClick={() => handleAddLessonClick(event.summary, event.start)}>Add Lesson</button>
+                )}
+              </li>
+            );
+          })
         ) : (
           <p>No events available</p>
         )}

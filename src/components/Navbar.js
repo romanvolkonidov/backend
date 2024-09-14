@@ -16,34 +16,34 @@ const Navbar = () => {
         <div className="md:hidden" onClick={toggleMenu}>
           <i className={isOpen ? 'fas fa-times text-white' : 'fas fa-bars text-white'}></i>
         </div>
-        <ul className={`md:flex md:items-center md:justify-between w-full ${isOpen ? 'flex flex-col items-center gap-2 mt-4' : 'hidden md:flex'}`}>
-          <li className="nav-item flex-grow md:flex md:justify-center">
-            <Link to="/" className="text-white font-bold p-2 bg-gray-700 border border-gray-600 rounded hover:bg-gray-600 transition duration-300 w-full text-center md:w-auto" onClick={toggleMenu}>
+        <ul className={`md:flex md:items-center md:space-x-4 ${isOpen ? 'block' : 'hidden'} md:block`}>
+          <li className="nav-item">
+            <Link to="/" className="text-white font-bold p-2 bg-gray-700 border border-gray-600 rounded hover:bg-gray-600 transition duration-300 block md:inline-block" onClick={toggleMenu}>
               Home
             </Link>
           </li>
-          <li className="nav-item flex-grow md:flex md:justify-center">
-            <Link to="/monthly-report" className="text-white font-bold p-2 bg-gray-700 border border-gray-600 rounded hover:bg-gray-600 transition duration-300 w-full text-center md:w-auto" onClick={toggleMenu}>
+          <li className="nav-item">
+            <Link to="/monthly-report" className="text-white font-bold p-2 bg-gray-700 border border-gray-600 rounded hover:bg-gray-600 transition duration-300 block md:inline-block" onClick={toggleMenu}>
               Monthly Report
             </Link>
           </li>
-          <li className="nav-item flex-grow md:flex md:justify-center">
-            <Link to="/students" className="text-white font-bold p-2 bg-gray-700 border border-gray-600 rounded hover:bg-gray-600 transition duration-300 w-full text-center md:w-auto" onClick={toggleMenu}>
+          <li className="nav-item">
+            <Link to="/students" className="text-white font-bold p-2 bg-gray-700 border border-gray-600 rounded hover:bg-gray-600 transition duration-300 block md:inline-block" onClick={toggleMenu}>
               Student Management
             </Link>
           </li>
-          <li className="nav-item flex-grow md:flex md:justify-center">
-            <Link to="/student-events" className="text-white font-bold p-2 bg-gray-700 border border-gray-600 rounded hover:bg-gray-600 transition duration-300 w-full text-center md:w-auto" onClick={toggleMenu}>
+          <li className="nav-item">
+            <Link to="/student-events" className="text-white font-bold p-2 bg-gray-700 border border-gray-600 rounded hover:bg-gray-600 transition duration-300 block md:inline-block" onClick={toggleMenu}>
               Student Events
             </Link>
           </li>
-          <li className="nav-item flex-grow md:flex md:justify-center">
-            <Link to="/invoice-generator" className="text-white font-bold p-2 bg-gray-700 border border-gray-600 rounded hover:bg-gray-600 transition duration-300 w-full text-center md:w-auto" onClick={toggleMenu}>
+          <li className="nav-item">
+            <Link to="/invoice-generator" className="text-white font-bold p-2 bg-gray-700 border border-gray-600 rounded hover:bg-gray-600 transition duration-300 block md:inline-block" onClick={toggleMenu}>
               Invoice
             </Link>
           </li>
-          <li className="nav-item flex-grow md:flex md:justify-center">
-            <Link to="/student-dashboard/:id" className="text-white font-bold p-2 bg-gray-700 border border-gray-600 rounded hover:bg-gray-600 transition duration-300 w-full text-center md:w-auto" onClick={toggleMenu}>
+          <li className="nav-item">
+            <Link to="/student-dashboard/:id" className="text-white font-bold p-2 bg-gray-700 border border-gray-600 rounded hover:bg-gray-600 transition duration-300 block md:inline-block" onClick={toggleMenu}>
               Student Dashboard
             </Link>
           </li>

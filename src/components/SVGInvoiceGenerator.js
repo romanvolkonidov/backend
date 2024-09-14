@@ -102,48 +102,55 @@ const SVGInvoiceGenerator = () => {
   };
 
   return (
-    <Container>
-      <InputSection>
-        <Heading>Invoice Data Input</Heading>
-        <InputField
+    <div className="container mx-auto p-4">
+      <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h1 className="text-2xl font-bold mb-4">Invoice Data Input</h1>
+        <input
+          className="w-full p-2 mb-4 border rounded"
           value={invoiceData.payer}
           onChange={(e) => handleInputChange(e, 'payer')}
           placeholder="Payer"
         />
         <StyledDatePicker
+          className="w-full p-2 mb-4 border rounded"
           selected={invoiceData.dateFrom}
           onChange={(date) => handleDateChange(date, 'dateFrom')}
           placeholderText="Date From"
           dateFormat="dd-MM-yyyy"
         />
         <StyledDatePicker
+          className="w-full p-2 mb-4 border rounded"
           selected={invoiceData.dateTo}
           onChange={(date) => handleDateChange(date, 'dateTo')}
           placeholderText="Date To"
           dateFormat="dd-MM-yyyy"
         />
         <StyledDatePicker
+          className="w-full p-2 mb-4 border rounded"
           selected={invoiceData.issueDate}
           onChange={(date) => handleDateChange(date, 'issueDate')}
           placeholderText="Issue Date"
           dateFormat="dd-MM-yyyy"
         />
         <StyledDatePicker
+          className="w-full p-2 mb-4 border rounded"
           selected={invoiceData.dueDate}
           onChange={(date) => handleDateChange(date, 'dueDate')}
           placeholderText="Due Date"
           dateFormat="dd-MM-yyyy"
         />
 
-        <SubHeading>Invoice Items</SubHeading>
+        <h2 className="text-xl font-semibold mb-2">Invoice Items</h2>
         {invoiceData.items.map((item, index) => (
-          <ItemInput key={index}>
-            <InputField
+          <div key={index} className="flex space-x-4 mb-4">
+            <input
+              className="flex-1 p-2 border rounded"
               value={item.name}
               onChange={(e) => handleItemChange(index, 'name', e.target.value)}
               placeholder="Item Name"
             />
-            <InputField
+            <input
+              className="flex-1 p-2 border rounded"
               value={item.quantity}
               onChange={(e) => {
                 const value = e.target.value;
@@ -153,7 +160,8 @@ const SVGInvoiceGenerator = () => {
               }}
               placeholder="Quantity"
             />
-            <InputField
+            <input
+              className="flex-1 p-2 border rounded"
               value={item.price}
               onChange={(e) => {
                 const value = e.target.value;
@@ -163,15 +171,17 @@ const SVGInvoiceGenerator = () => {
               }}
               placeholder="Price"
             />
-          </ItemInput>
+          </div>
         ))}
 
-        <InputField
+        <input
+          className="w-full p-2 mb-4 border rounded"
           value={invoiceData.discountDescription}
           onChange={(e) => handleInputChange(e, 'discountDescription')}
           placeholder="Discount Description"
         />
-        <InputField
+        <input
+          className="w-full p-2 mb-4 border rounded"
           value={invoiceData.discount}
           onChange={(e) => {
             const value = e.target.value;
@@ -181,24 +191,26 @@ const SVGInvoiceGenerator = () => {
           }}
           placeholder="Discount (e.g., 10 or 10%)"
         />
-        <InputField
+        <input
+          className="w-full p-2 mb-4 border rounded"
           value={invoiceData.note}
           onChange={(e) => handleInputChange(e, 'note')}
           placeholder="Note"
         />
 
-        <SubHeading>Select Template</SubHeading>
-        <TemplateSelector
+        <h2 className="text-xl font-semibold mb-2">Select Template</h2>
+        <select
+          className="w-full p-2 mb-4 border rounded"
           value={template}
           onChange={(e) => setTemplate(e.target.value)}
         >
           <option value="1.jpg">Template 1</option>
           <option value="2.jpg">Template 2</option>
-        </TemplateSelector>
-      </InputSection>
+        </select>
+      </div>
 
-      <InvoiceSection>
-        <InvoicePreview id="invoice">
+      <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+        <div id="invoice" className="relative">
           <svg
             viewBox="0 0 800 1000"
             preserveAspectRatio="xMidYMid meet"
@@ -241,10 +253,15 @@ const SVGInvoiceGenerator = () => {
               <text x="470" y={FINAL_TOTAL_Y_POSITION} fontSize="18" fontWeight="bold">СУММА К ОПЛАТЕ: {calculateFinalTotal().toFixed(2)}</text>
             )}
           </svg>
-        </InvoicePreview>
-        <SaveButton onClick={saveAsJPEG}>Download</SaveButton>
-      </InvoiceSection>
-    </Container>
+        </div>
+        <button
+          className="w-full p-2 mt-4 bg-indigo-500 text-white font-bold rounded hover:bg-blue-600 transition duration-300"
+          onClick={saveAsJPEG}
+        >
+          Download
+        </button>
+      </div>
+    </div>
   );
 };
 

@@ -4,9 +4,12 @@ import Home from './components/Home';
 import MonthlyReport from './components/MonthlyReport';
 import StudentManagement from './components/StudentManagement';
 import StudentPage from './components/StudentPage';
-import EventsPage from './components/EventsPage'; // Import EventsPage
+import EventsPage from './components/EventsPage';
 import Navbar from './components/Navbar';
 import { GlobalStateProvider } from './context/GlobalStateContext';
+import SVGInvoiceGenerator from './components/SVGInvoiceGenerator';
+import StudentDashboard from './components/StudentDashboard';
+import './styles/App.css';
 
 function App() {
   useEffect(() => {
@@ -48,14 +51,18 @@ function App() {
     <GlobalStateProvider>
       <Router>
         <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/monthly-report" element={<MonthlyReport />} />
-          <Route path="/students" element={<StudentManagement />} />
-          <Route path="/student/:id" element={<StudentPage />} />
-          <Route path="/student-events" element={<EventsPage />} /> {/* Add route for EventsPage */}
-        </Routes>
-        <button id="install-button" style={{ display: 'none' }}>Install</button>
+        <div className="app">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/monthly-report" element={<MonthlyReport />} />
+            <Route path="/students" element={<StudentManagement />} />
+            <Route path="/student/:id" element={<StudentPage />} />
+            <Route path="/student-dashboard/:id" element={<StudentDashboard />} />
+            <Route path="/student-events" element={<EventsPage />} />
+            <Route path="/invoice-generator" element={<SVGInvoiceGenerator />} />
+          </Routes>
+          <button id="install-button" className="hidden">Install</button>
+        </div>
       </Router>
     </GlobalStateProvider>
   );

@@ -7,7 +7,8 @@ const GlobalStateContext = createContext();
 const GlobalStateProvider = ({ children }) => {
   const [transactions, setTransactions] = useState([]);
   const [students, setStudents] = useState([]);
-  const [expectedIncome, setExpectedIncome] = useState(1000); // Default expected income
+  const [expectedIncome, setExpectedIncome] = useState({ amount: 1000, currency: 'KES' });
+  const [debt, setDebt] = useState({ amount: 0, currency: 'KES' });
   const [exchangeRates, setExchangeRates] = useState({});
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,25 +17,28 @@ const GlobalStateProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      // Fetch transactions
       const transactionSnapshot = await getDocs(collection(db, 'transactions'));
       const fetchedTransactions = transactionSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setTransactions(fetchedTransactions);
 
-      // Fetch students
       const studentSnapshot = await getDocs(collection(db, 'students'));
       const fetchedStudents = studentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setStudents(fetchedStudents);
 
-      // Fetch expected income
       const incomeDocRef = doc(db, 'settings', 'expectedIncome');
       const incomeDocSnap = await getDoc(incomeDocRef);
       if (incomeDocSnap.exists()) {
-        const incomeValue = incomeDocSnap.data().value;
-        setExpectedIncome(incomeValue);
+        const { amount, currency } = incomeDocSnap.data();
+        setExpectedIncome({ amount, currency });
       }
 
-      // Fetch exchange rates
+      const debtDocRef = doc(db, 'settings', 'debt');
+      const debtDocSnap = await getDoc(debtDocRef);
+      if (debtDocSnap.exists()) {
+        const { amount, currency } = debtDocSnap.data();
+        setDebt({ amount, currency });
+      }
+
       const response = await fetch('https://v6.exchangerate-api.com/v6/3bbdd0fd4d206d7fbbf81174/latest/USD');
       const data = await response.json();
       const relevantRates = {
@@ -62,13 +66,43 @@ const GlobalStateProvider = ({ children }) => {
     try {
       const newTransaction = {
         ...transaction,
-        date: new Date().toISOString(), // Store the date of the transaction
+        date: new Date().toISOString(),
       };
       const docRef = await addDoc(collection(db, 'transactions'), newTransaction);
       setTransactions(prev => [...prev, { id: docRef.id, ...newTransaction }]);
     } catch (error) {
       setError("Error adding transaction");
       console.error("Error adding document: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateExpectedIncome = async (amount, currency) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const docRef = doc(db, 'settings', 'expectedIncome');
+      await setDoc(docRef, { amount, currency });
+      setExpectedIncome({ amount, currency });
+    } catch (error) {
+      setError("Error updating expected income");
+      console.error("Error updating document: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const setDebtAmount = async (amount, currency) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const docRef = doc(db, 'settings', 'debt');
+      await setDoc(docRef, { amount, currency });
+      setDebt({ amount, currency });
+    } catch (error) {
+      setError("Error setting debt amount");
+      console.error("Error updating document: ", error);
     } finally {
       setLoading(false);
     }
@@ -117,28 +151,6 @@ const GlobalStateProvider = ({ children }) => {
     }
   };
 
-  const updateExpectedIncome = async (income) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const docRef = doc(db, 'settings', 'expectedIncome');
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        await updateDoc(docRef, { value: income });
-      } else {
-        await setDoc(docRef, { value: income });
-      }
-
-      setExpectedIncome(income); // Update the state immediately
-    } catch (error) {
-      setError("Error updating expected income");
-      console.error("Error updating document: ", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const deleteTransaction = async (id) => {
     setLoading(true);
     setError(null);
@@ -153,22 +165,33 @@ const GlobalStateProvider = ({ children }) => {
     }
   };
 
+  const convertAmount = (amount, fromCurrency, toCurrency) => {
+    if (!exchangeRates || !exchangeRates[fromCurrency] || !exchangeRates[toCurrency]) {
+      return amount;
+    }
+    const rate = exchangeRates[toCurrency] / exchangeRates[fromCurrency];
+    return amount * rate;
+  };
+
   return (
     <GlobalStateContext.Provider value={{
       transactions,
       students,
       expectedIncome,
+      debt,
       addTransaction,
       addStudent,
       updateStudent,
       deleteStudent,
       updateExpectedIncome,
+      setDebtAmount,
       deleteTransaction,
       setTransactions,
       setStudents,
       exchangeRates,
       error,
-      loading
+      loading,
+      convertAmount
     }}>
       {children}
     </GlobalStateContext.Provider>

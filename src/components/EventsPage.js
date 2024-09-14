@@ -1,13 +1,15 @@
-import React, { useEffect, useState, useContext, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GlobalStateContext } from '../context/GlobalStateContext';
-import '../styles/EventsPage.css'; // Import the CSS file
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const EventsPage = () => {
-  const { students, transactions, setTransactions } = useContext(GlobalStateContext);
-  const [events, setEvents] = useState({}); // Initialize as an empty object
+  const [students, setStudents] = useState([]); // Assuming students are fetched or passed as props
+  const [transactions, setTransactions] = useState([]); // Assuming transactions are fetched or passed as props
+  const [events, setEvents] = useState(() => {
+    const storedEvents = localStorage.getItem('events');
+    return storedEvents ? JSON.parse(storedEvents) : {};
+  }); // Initialize from localStorage if available
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showLessonForm, setShowLessonForm] = useState(false);
@@ -23,29 +25,40 @@ const EventsPage = () => {
   const navigate = useNavigate();
   const formRef = useRef(null); // Reference to the form element
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetch('https://test-il25.onrender.com/events');
+  const fetchEvents = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const storedEvents = localStorage.getItem('events');
+      const storedFetchTime = localStorage.getItem('eventsFetchTime');
+      const now = Date.now();
+
+      if (storedEvents && storedFetchTime && now - storedFetchTime < 2 * 60 * 1000) {
+        setEvents(JSON.parse(storedEvents));
+      } else {
+        const response = await fetch('https://node1-wjn7-git-main-romans-projects-fb0eaccb.vercel.app/api/events');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const eventsData = await response.json();
-        console.log('Fetched events:', eventsData); // Debugging log
-        setEvents(eventsData); // Set events to the fetched data
-      } catch (err) {
-        setError('Error fetching events');
-        console.error('Error fetching events:', err);
-        setEvents({}); // Ensure events is an object even if fetch fails
-      } finally {
-        setLoading(false);
+        setEvents(eventsData);
+        localStorage.setItem('events', JSON.stringify(eventsData));
+        localStorage.setItem('eventsFetchTime', now.toString());
       }
-    };
-
-    fetchEvents();
+    } catch (err) {
+      setError('Error fetching events');
+      console.error('Error fetching events:', err);
+      setEvents({});
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchEvents();
+    const intervalId = setInterval(fetchEvents, 2 * 60 * 1000);
+    return () => clearInterval(intervalId);
+  }, [fetchEvents]);
 
   useEffect(() => {
     if (showLessonForm && formRef.current) {
@@ -53,23 +66,21 @@ const EventsPage = () => {
     }
   }, [showLessonForm]);
 
-const handleAddLessonClick = (eventSummary, eventStart) => {
-  const studentsInEvent = students.filter((student) => {
-    const studentNames = student.name.split(' ');
-    return studentNames.some(namePart => eventSummary.includes(namePart));
-  });
-  console.log('Event Summary:', eventSummary); // Debugging log
-  console.log('Students in Event:', studentsInEvent); // Debugging log
-  if (studentsInEvent.length > 0) {
-    setCurrentStudents(studentsInEvent);
-    setLessonDescription(eventSummary);
-    setLessonDate(new Date(eventStart).toISOString().slice(0, 10)); // Ensure correct date format
-    setSelectedSubject('English'); // You can adjust this as needed
-    setCurrentStudentIndex(0);
-    setShowLessonForm(true);
-    setFadeIn(true); // Trigger fade-in animation
-  }
-};
+  const handleAddLessonClick = (eventSummary, eventStart) => {
+    const studentsInEvent = students.filter((student) => {
+      const studentNames = student.name.split(' ');
+      return studentNames.some(namePart => eventSummary.includes(namePart));
+    });
+    if (studentsInEvent.length > 0) {
+      setCurrentStudents(studentsInEvent);
+      setLessonDescription(eventSummary);
+      setLessonDate(new Date(eventStart).toISOString().slice(0, 10)); // Ensure correct date format
+      setSelectedSubject('English'); // You can adjust this as needed
+      setCurrentStudentIndex(0);
+      setShowLessonForm(true);
+      setFadeIn(true); // Trigger fade-in animation
+    }
+  };
 
   const handleAddLesson = async (e) => {
     e.preventDefault();
@@ -120,70 +131,71 @@ const handleAddLessonClick = (eventSummary, eventStart) => {
     setSelectedSubject('English');
   };
 
-  return (
-    <div className="container">
-      <h1>Today's Lessons</h1>
-      {loading && <p>Loading...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {showPopup && <div className="popup">{popupMessage}</div>}
-      <ul>
-  {Object.keys(events).length > 0 ? (
-    Object.entries(events)
+  const sortedAndFilteredEvents = useMemo(() => {
+    return Object.entries(events)
       .flatMap(([eventKey, eventArray]) => eventArray)
       .sort((a, b) => new Date(a.start) - new Date(b.start))
       .filter((event, index, self) =>
-        index === self.findIndex((e) => e.summary === event.summary && e.start === event.start)
-      )
-      .map((event, index) => {
-        const studentsInEvent = students.filter((student) => {
-          const studentNames = student.name.split(' ');
-          return studentNames.some(namePart => event.summary.includes(namePart));
-        });
-        console.log('Event:', event); // Debugging log
-        console.log('Students in Event:', studentsInEvent); // Debugging log
-        return (
-          <li key={index} className="calendar-event">
-            {event.summary} - {new Date(event.start).toLocaleTimeString()} to {new Date(event.end).toLocaleTimeString()}
-            {studentsInEvent.length > 0 && (
-              <button onClick={() => handleAddLessonClick(event.summary, event.start)}>Add Lesson</button>
-            )}
-          </li>
-        );
-      })
-  ) : (
-    <p>No events available</p>
-  )}
-</ul>
+        index === self.findIndex((e) => e.summary === event.summary && e.start === e.start)
+      );
+  }, [events]);
+
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Today's Lessons</h1>
+      {loading && <p>Loading...</p>}
+      {error && <p className="text-red-500">{error}</p>}
+      {showPopup && <div className="popup bg-green-500 text-white p-2 rounded">{popupMessage}</div>}
+      <ul>
+        {sortedAndFilteredEvents.length > 0 ? (
+          sortedAndFilteredEvents.map((event, index) => {
+            const studentsInEvent = students.filter((student) => {
+              const studentNames = student.name.split(' ');
+              return studentNames.some(namePart => event.summary.includes(namePart));
+            });
+            return (
+              <li key={index} className="calendar-event mb-2 p-2 border rounded">
+                {event.summary} - {new Date(event.start).toLocaleTimeString()} to {new Date(event.end).toLocaleTimeString()}
+                {studentsInEvent.length > 0 && (
+                  <button className="ml-2 bg-blue-500 text-white px-2 py-1 rounded" onClick={() => handleAddLessonClick(event.summary, event.start)}>Add Lesson</button>
+                )}
+              </li>
+            );
+          })
+        ) : (
+          <p>No events available</p>
+        )}
+      </ul>
       {showLessonForm && (
         <form
           ref={formRef}
           onSubmit={handleAddLesson}
-          className={`${fadeIn ? 'fade-in' : ''} ${fadeOut ? 'fade-out' : ''}`}
+          className={`mt-4 p-4 border rounded ${fadeIn ? 'fade-in' : ''} ${fadeOut ? 'fade-out' : ''}`}
           onAnimationEnd={() => {
             if (fadeOut) {
               setFadeOut(false); // Reset fade-out state after animation ends
             }
           }}
         >
-          <h2>Add Lesson for {currentStudents[currentStudentIndex]?.name}</h2>
-          <div>
-            <label>Description:</label>
-            <input type="text" value={lessonDescription} onChange={(e) => setLessonDescription(e.target.value)} />
+          <h2 className="text-xl font-bold mb-2">Add Lesson for {currentStudents[currentStudentIndex]?.name}</h2>
+          <div className="mb-2">
+            <label className="block mb-1">Description:</label>
+            <input className="w-full p-2 border rounded" type="text" value={lessonDescription} onChange={(e) => setLessonDescription(e.target.value)} />
           </div>
-          <div>
-            <label>Date:</label>
-            <input type="date" value={lessonDate} onChange={(e) => setLessonDate(e.target.value)} />
+          <div className="mb-2">
+            <label className="block mb-1">Date:</label>
+            <input className="w-full p-2 border rounded" type="date" value={lessonDate} onChange={(e) => setLessonDate(e.target.value)} />
           </div>
-          <div>
-            <label>Subject:</label>
-            <select value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)}>
+          <div className="mb-2">
+            <label className="block mb-1">Subject:</label>
+            <select className="w-full p-2 border rounded" value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)}>
               <option value="English">English</option>
               <option value="Math">Math</option>
               <option value="Science">Science</option>
               {/* Add more subjects as needed */}
             </select>
           </div>
-          <button type="submit">Add Lesson</button>
+          <button className="bg-green-500 text-white px-4 py-2 rounded" type="submit">Add Lesson</button>
         </form>
       )}
     </div>

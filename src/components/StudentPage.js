@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Bar } from 'react-chartjs-2';
 import { GlobalStateContext } from '../context/GlobalStateContext';
 import 'chart.js/auto';
-import '../styles/StudentPage.css';
+import 'tailwindcss/tailwind.css';
 import { db } from '../firebase';
 import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
@@ -181,7 +181,7 @@ const StudentPage = () => {
   }, [displayCurrency, transactions, exchangeRates]);
 
   if (!student) {
-    return <div>Student not found</div>;
+    return <div className="text-center text-red-500">Student not found</div>;
   }
 
   const filteredTransactions = convertedTransactions.filter(transaction => transaction.category === student.name);
@@ -226,127 +226,133 @@ const StudentPage = () => {
   const displayedTransactions = filter === 'All' ? filteredTransactions :
     filter === 'Payments' ? payments : lessons;
 
-    return (
-      <div className="student-page">
-        <div className="chart-info-container">
-          <div className="student-info">
-            <h2>{student.name}</h2>
-            <p className="info-item"><strong>Price per Lesson:</strong> {displayCurrency} {(convertToSelectedCurrency(student.price, student.currency)).toFixed(2)}</p>
-            <p className="info-item"><strong>Lessons Purchased:</strong> {totalPaidLessons.toFixed(2)}</p>
-            <p className="info-item"><strong>Lessons Completed:</strong> {completedLessons}</p>
-            <p className="info-item"><strong>Remaining Lessons:</strong> {positiveRemainingLessons}</p>
-            <p className="info-item"><strong>Debt Lessons:</strong> {debtLessons}</p>
-          </div>
-          <div className="chart-container">
-            <div className="chart-wrapper">
-              <Bar data={barData} options={barOptions} />
-            </div>
-          </div>
+  return (
+    <div className="max-w-5xl mx-auto p-5 font-sans text-gray-800">
+      <div className="flex justify-between items-center mb-5">
+        <div>
+          <h2 className="text-2xl font-bold text-indigo-500">{student.name}</h2>
+          <p className="text-lg"><strong>Price per Lesson:</strong> {displayCurrency} {(convertToSelectedCurrency(student.price, student.currency)).toFixed(2)}</p>
+          <p className="text-lg"><strong>Lessons Purchased:</strong> {totalPaidLessons.toFixed(2)}</p>
+          <p className="text-lg"><strong>Lessons Completed:</strong> {completedLessons}</p>
+          <p className="text-lg"><strong>Remaining Lessons:</strong> {positiveRemainingLessons}</p>
+          <p className="text-lg"><strong>Debt Lessons:</strong> {debtLessons}</p>
         </div>
-        {error && <p className="error-message">{error}</p>}
-        {showPopup && <div className="popup">{popupMessage}</div>}
-        <div className="forms-container">
-          <form onSubmit={editingPaymentId ? handleUpdatePayment : handleAddPayment}>
-            <h3>{editingPaymentId ? 'Edit Payment' : 'Add Payment'}</h3>
-            <div>
-              <label htmlFor="amount">Amount:</label>
-              <input type="number" id="amount" value={amount} onChange={(e) => setAmount(e.target.value)} required />
-              <select id="currency" value={currency} onChange={(e) => setCurrency(e.target.value)} required>
-                {currencies.map(curr => (
-                  <option key={curr} value={curr}>{curr}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="date">Date:</label>
-              <input type="date" id="date" value={date} onChange={(e) => setDate(e.target.value)} required />
-            </div>
-            <button type="submit" className="add-payment-button">{editingPaymentId ? 'Update Payment' : 'Add Payment'}</button>
-            {editingPaymentId && <button type="button" onClick={resetPaymentForm} className="cancel-button">Cancel</button>}
-          </form>
-          <form onSubmit={editingLessonId ? handleUpdateLesson : handleAddLesson}>
-            <h3>{editingLessonId ? 'Edit Lesson' : 'Add Lesson'}</h3>
-            <div>
-              <label htmlFor="lessonDescription">Lesson Description:</label>
-              <input type="text" id="lessonDescription" value={lessonDescription} onChange={(e) => setLessonDescription(e.target.value)} />
-            </div>
-            <div>
-              <label htmlFor="lessonDate">Lesson Date:</label>
-              <input type="date" id="lessonDate" value={lessonDate} onChange={(e) => setLessonDate(e.target.value)} required />
-            </div>
-            <div>
-              <label htmlFor="selectedSubject">Subject:</label>
-              <select id="selectedSubject" value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} required>
-                <option value="English">English</option>
-                <option value="IT">IT</option>
-              </select>
-            </div>
-            <button type="submit" className="add-lesson-button">{editingLessonId ? 'Update Lesson' : 'Add Lesson'}</button>
-            {editingLessonId && <button type="button" onClick={resetLessonForm} className="cancel-button">Cancel</button>}
-          </form>
-        </div>
-        <div className="dropdown">
-          <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-            <option value="All">All Transactions</option>
-            <option value="Payments">Payments</option>
-            <option value="Lessons">Completed Lessons</option>
-          </select>
-        </div>
-        <div className="dropdown">
-          <select value={displayCurrency} onChange={(e) => setDisplayCurrency(e.target.value)}>
-            {currencies.map(curr => (
-              <option key={curr} value={curr}>{curr}</option>
-            ))}
-          </select>
-        </div>
-        <div className="transactions-container">
-          <div className="transactions-list">
-            <h3>Payments</h3>
-            <ul>
-              {payments.map(transaction => (
-                <li key={transaction.id} className="transaction-item">
-                  Payment of {transaction.amount.toFixed(2)} {transaction.currency} on {transaction.date}
-                  <div className="button-group">
-                    <button onClick={() => handleEditPayment(transaction.id)}>Edit</button>
-                    <button onClick={() => handleRemoveTransaction(transaction.id)} className="remove-button">Remove</button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="transactions-list completed-lessons">
-            <h3>Completed Lessons</h3>
-            <div className="subject-list">
-              <h4>English</h4>
-              <ul>
-                {englishLessons.map(transaction => (
-                  <li key={transaction.id} className="transaction-item">
-                    {transaction.description} on {transaction.date}
-                    <div className="button-group">
-                      <button onClick={() => handleEditLesson(transaction.id)}>Edit</button>
-                      <button onClick={() => handleRemoveTransaction(transaction.id)} className="remove-button">Remove</button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="subject-list">
-              <h4>IT</h4>
-              <ul>
-                {itLessons.map(transaction => (
-                  <li key={transaction.id} className="transaction-item">
-                    {transaction.description} on {transaction.date}
-                    <div className="button-group">
-                      <button onClick={() => handleEditLesson(transaction.id)}>Edit</button>
-                      <button onClick={() => handleRemoveTransaction(transaction.id)} className="remove-button">Remove</button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+        <div className="w-1/2">
+          <Bar data={barData} options={barOptions} />
         </div>
       </div>
-    );
-  }
-  export default StudentPage;
+      {error && <p className="text-red-600 font-bold mb-5">{error}</p>}
+      {showPopup && <div className="fixed bottom-5 right-5 bg-green-500 text-white p-3 rounded shadow-lg">{popupMessage}</div>}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+        <form onSubmit={editingPaymentId ? handleUpdatePayment : handleAddPayment} className="bg-white p-5 rounded shadow-md">
+          <h3 className="text-xl font-semibold mb-3">{editingPaymentId ? 'Edit Payment' : 'Add Payment'}</h3>
+          <div className="mb-3">
+            <label htmlFor="amount" className="block mb-1">Amount:</label>
+            <input type="number" id="amount" value={amount} onChange={(e) => setAmount(e.target.value)} required className="w-full p-2 border border-gray-300 rounded" />
+            <select id="currency" value={currency} onChange={(e) => setCurrency(e.target.value)} required className="w-full p-2 border border-gray-300 rounded mt-2">
+              {currencies.map(curr => (
+                <option key={curr} value={curr}>{curr}</option>
+              ))}
+            </select>
+          </div>
+          <div className="mb-3">
+            <label htmlFor="date" className="block mb-1">Date:</label>
+            <input type="date" id="date" value={date} onChange={(e) => setDate(e.target.value)} required className="w-full p-2 border border-gray-300 rounded" />
+          </div>
+          <button type="submit" className="bg-indigo-500 text-white p-2 rounded hover:bg-blue-700">{editingPaymentId ? 'Update Payment' : 'Add Payment'}</button>
+          {editingPaymentId && <button type="button" onClick={resetPaymentForm} className="bg-gray-500 text-white p-2 rounded ml-2 hover:bg-gray-700">Cancel</button>}
+        </form>
+        <form onSubmit={editingLessonId ? handleUpdateLesson : handleAddLesson} className="bg-white p-5 rounded shadow-md">
+          <h3 className="text-xl font-semibold mb-3">{editingLessonId ? 'Edit Lesson' : 'Add Lesson'}</h3>
+          <div className="mb-3">
+            <label htmlFor="lessonDescription" className="block mb-1">Lesson Description:</label>
+            <input type="text" id="lessonDescription" value={lessonDescription} onChange={(e) => setLessonDescription(e.target.value)} className="w-full p-2 border border-gray-300 rounded" />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="lessonDate" className="block mb-1">Lesson Date:</label>
+            <input type="date" id="lessonDate" value={lessonDate} onChange={(e) => setLessonDate(e.target.value)} required className="w-full p-2 border border-gray-300 rounded" />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="selectedSubject" className="block mb-1">Subject:</label>
+            <select id="selectedSubject" value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} required className="w-full p-2 border border-gray-300 rounded">
+              <option value="English">English</option>
+              <option value="IT">IT</option>
+            </select>
+          </div>
+          <button type="submit" className="bg-indigo-500 text-white p-2 rounded hover:bg-blue-700">{editingLessonId ? 'Update Lesson' : 'Add Lesson'}</button>
+          {editingLessonId && <button type="button" onClick={resetLessonForm} className="bg-gray-500 text-white p-2 rounded ml-2 hover:bg-gray-700">Cancel</button>}
+        </form>
+      </div>
+      <div className="mb-5">
+        <label htmlFor="filter" className="block mb-1">Filter Transactions:</label>
+        <select value={filter} onChange={(e) => setFilter(e.target.value)} className="w-full p-2 border border-gray-300 rounded">
+          <option value="All">All Transactions</option>
+          <option value="Payments">Payments</option>
+          <option value="Lessons">Completed Lessons</option>
+        </select>
+      </div>
+      <div className="mb-5">
+        <label htmlFor="displayCurrency" className="block mb-1">Display Currency:</label>
+        <select value={displayCurrency} onChange={(e) => setDisplayCurrency(e.target.value)} className="w-full p-2 border border-gray-300 rounded">
+          {currencies.map(curr => (
+            <option key={curr} value={curr}>{curr}</option>
+          ))}
+        </select>
+      </div>
+      <div className="mb-5">
+        <h3 className="text-lg font-bold">Payments</h3>
+        <ul className="list-none p-0">
+          {payments.map(transaction => (
+            <li key={transaction.id} className="bg-gray-100 border border-gray-300 rounded p-3 mb-3 relative">
+              <span className="block mb-2 cursor-pointer text-lg font-medium">
+                <span className="block text-black-600">Payment of {transaction.amount.toFixed(2)} {transaction.currency} on {transaction.date}</span>
+              </span>
+              <div className="absolute right-2 top-2">
+                <button onClick={() => handleEditPayment(transaction.id)} className="bg-indigo-500 text-white p-2 rounded hover:bg-blue-700">Edit</button>
+                <button onClick={() => handleRemoveTransaction(transaction.id)} className="bg-gray-500 text-white p-2 rounded ml-2 hover:bg-red-700">Remove</button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="mb-5">
+        <h3 className="text-lg font-bold">Completed Lessons</h3>
+        <div className="mb-3">
+          <h4 className="text-md font-bold">English</h4>
+          <ul className="list-none p-0">
+            {englishLessons.map(transaction => (
+              <li key={transaction.id} className="bg-gray-100 border border-gray-300 rounded p-3 mb-3 relative">
+                <span className="block mb-2 cursor-pointer text-lg font-medium">
+                  <span className="block text-black-600">{transaction.description} on {transaction.date}</span>
+                </span>
+                <div className="absolute right-2 top-2">
+                  <button onClick={() => handleEditLesson(transaction.id)} className="bg-indigo-500 text-white p-2 rounded hover:bg-blue-700">Edit</button>
+                  <button onClick={() => handleRemoveTransaction(transaction.id)} className="bg-gray-500 text-white p-2 rounded ml-2 hover:bg-red-700">Remove</button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="mb-3">
+          <h4 className="text-md font-bold">IT</h4>
+          <ul className="list-none p-0">
+            {itLessons.map(transaction => (
+              <li key={transaction.id} className="bg-gray-100 border border-gray-300 rounded p-3 mb-3 relative">
+                <span className="block mb-2 cursor-pointer text-lg font-medium">
+                  <span className="block text-blue-600">{transaction.description} on {transaction.date}</span>
+                </span>
+                <div className="absolute right-2 top-2">
+                  <button onClick={() => handleEditLesson(transaction.id)} className="bg-blue-500 text-white p-2 rounded hover:bg-blue-700">Edit</button>
+                  <button onClick={() => handleRemoveTransaction(transaction.id)} className="bg-gray-500 text-white p-2 rounded ml-2 hover:bg-gray-700">Remove</button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+   
+    </div>
+  );
+};
+
+export default StudentPage;
